@@ -138,29 +138,61 @@
             100% { transform: translateX(-100%); }
         }
 
-        /* REPRODUCTOR PERSONALIZADO ESTILO BOTÓN MODERNO */
-        .custom-audio-box {
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 50px;
-            padding: 10px;
+        /* DISEÑO PREMIUM: BOTÓN CIRCULAR DE CONTROL PLAY/PAUSA */
+        .play-btn-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 20px 0;
+        }
+        .play-button {
+            width: 75px;
+            height: 75px;
+            background: linear-gradient(135deg, #00d4ff 0%, #0072ff 100%);
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
-            border: 1px solid rgba(255, 255, 255, 0.15);
-        }
-        audio {
-            width: 100%;
+            box-shadow: 0 6px 20px rgba(0, 212, 255, 0.4);
+            transition: all 0.3s ease;
             outline: none;
         }
+        .play-button:hover {
+            transform: scale(1.08);
+            box-shadow: 0 8px 25px rgba(0, 212, 255, 0.6);
+        }
+        .play-button:active {
+            transform: scale(0.95);
+        }
+        /* Icono de Play usando formas CSS nativas */
+        .icon-play {
+            width: 0;
+            height: 0;
+            border-top: 12px solid transparent;
+            border-bottom: 12px solid transparent;
+            border-left: 20px solid white;
+            margin-left: 6px;
+        }
+        /* Icono de Pausa usando formas CSS nativas */
+        .icon-pause {
+            display: none;
+            width: 16px;
+            height: 22px;
+            justify-content: space-between;
+        }
+        .icon-pause::before, .icon-pause::after {
+            content: "";
+            width: 5px;
+            height: 100%;
+            background-color: white;
+            border-radius: 2px;
+        }
 
-        /* OCULTACIÓN ESTRATÉGICA DEL IFRAME DE ZENO */
-        .iframe-oculto {
-            position: absolute;
-            width: 1px;
-            height: 1px;
-            opacity: 0;
-            pointer-events: none;
-            left: -9999px;
+        /* Ocultación técnica completa del elemento de audio del navegador */
+        audio {
+            display: none;
         }
 
         .footer-text {
@@ -179,8 +211,10 @@
 </head>
 <body>
 
-    <!-- EL IFRAME DE ZENO QUEDA OPERANDO EN CONTROL TOTAL DE FONDO, SIN VERSE -->
-    <iframe class="iframe-oculto" src="https://stream.zeno.fm/kns3mkxb6ehvv" frameborder="0" scrolling="no"></iframe>
+    <!-- REPRODUCTOR SILENCIOSO INTEGRADO DE FORMA INVISIBLE -->
+    <audio id="radio-stream" preload="none">
+        <source src="https://stream.zeno.fm/kns3mkxb6ehvv" type="audio/mpeg">
+    </audio>
 
     <div class="player-container">
         <!-- Contenedor de tu logotipo enlazado -->
@@ -199,43 +233,56 @@
             </div>
         </div>
         
-        <!-- REPRODUCTOR DIRECTO NATIVO IMPULSADO POR LA RED DE ZENO -->
-        <div class="custom-audio-box">
-            <audio controls autoplay>
-                <source src="https://stream.zeno.fm/kns3mkxb6ehvv" type="audio/mpeg">
-                Tu dispositivo no soporta este reproductor de audio.
-            </audio>
+        <!-- INTERFAZ PREMIUM DEL BOTÓN CIRCULAR PERSONALIZADO -->
+        <div class="play-btn-container">
+            <button class="play-button" id="btn-control-play" aria-label="Reproducir">
+                <div class="icon-play" id="icon-p"></div>
+                <div class="icon-pause" id="icon-s"></div>
+            </button>
         </div>
 
         <div class="footer-text">Música sin fronteras</div>
     </div>
 
-    <!-- SCRIPT DE CONSULTA DIRECTA DE TEXTO (EVITA BLOQUEOS POR CORS) -->
+    <!-- SCRIPT TÉCNICO COMPLETO PARA AUDIO Y CORRECCIÓN DE RESTRICCIONES DE RED -->
     <script>
+        const mountpoint = 'kns3mkxb6ehvv';
+        const campoTexto = document.getElementById('now-playing');
+        const audioPlayer = document.getElementById('radio-stream');
+        const playButton = document.getElementById('btn-control-play');
+        const iconPlay = document.getElementById('icon-p');
+        const iconPause = document.getElementById('icon-s');
+
+        // Control Lógico de Reproducción / Pausa
+        playButton.addEventListener('click', () => {
+            if (audioPlayer.paused) {
+                // Para flujos de streaming en vivo, refrescar la URL limpia el caché de retraso
+                audioPlayer.src = `https://zeno.fm{mountpoint}?t=${Date.now()}`;
+                audioPlayer.play()
+                    .then(() => {
+                        iconPlay.style.display = 'none';
+                        iconPause.style.display = 'flex';
+                    })
+                    .catch(err => console.error("Error al arrancar el streaming:", err));
+            } else {
+                audioPlayer.pause();
+                // Cortar la descarga para ahorrarle datos de internet al oyente
+                audioPlayer.src = '';
+                iconPlay.style.display = 'block';
+                iconPause.style.display = 'none';
+            }
+        });
+
+        // Consulta estructurada directa a la API JSON de Zeno Media
         function actualizarMetadataLimpia() {
-            const campoTexto = document.getElementById('now-playing');
-            // Endpoint alternativo de metadatos públicos provisto por la infraestructura de Zeno
-            fetch('https://zeno.fm')
-                .then(res => res.json())
+            fetch(`https://zeno.fm{mountpoint}`)
+                .then(res => {
+                    if (!res.ok) throw new Error();
+                    return res.json();
+                })
                 .then(resultado => {
                     if (resultado && resultado.data && resultado.data.streamTitle) {
                         campoTexto.innerText = resultado.data.streamTitle;
                     } else if (resultado && resultado.streamTitle) {
                         campoTexto.innerText = resultado.streamTitle;
                     }
-                })
-                .catch(() => {
-                    if(campoTexto.innerText === "TURADIO - En Vivo") {
-                        campoTexto.innerText = "TURADIO - En Vivo";
-                    }
-                });
-        }
-
-        document.addEventListener("DOMContentLoaded", () => {
-            actualizarMetadataLimpia();
-            // Consulta de metadatos cada 10 segundos de forma independiente
-            setInterval(actualizarMetadataLimpia, 10000);
-        });
-    </script>
-</body>
-</html>
