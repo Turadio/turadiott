@@ -2,20 +2,18 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <!-- Esta línea es CRÍTICA: le dice al celular que adapte el diseño al tamaño de su pantalla -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>TURADIO - En Vivo</title>
     <style>
-        /* Reseteo básico para evitar márgenes raros en móviles */
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
         }
 
-        /* Fondo adaptable a todo tipo de pantallas */
+        /* Degradado moderno de alto impacto en tendencia */
         body {
-            background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+            background: linear-gradient(135deg, #0f2027 0%, #203a43 40%, #2c5364 100%);
             color: #ffffff;
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
             display: flex;
@@ -25,41 +23,64 @@
             min-height: 100vh;
             padding: 20px;
             text-align: center;
+            position: relative;
+            overflow: hidden;
         }
 
-        /* Contenedor inteligente: se estira en celulares y se frena en computadoras */
+        /* Elemento decorativo sutil para romper el fondo plano */
+        body::before {
+            content: "";
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(44, 83, 100, 0.4) 0%, rgba(0, 0, 0, 0) 70%);
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        /* Contenedor flotante estilo Glassmorphism (efecto cristal) */
         .player-container {
-            background: rgba(255, 255, 255, 0.06);
-            padding: 40px 30px;
-            border-radius: 24px;
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6);
+            position: relative;
+            z-index: 2;
+            background: rgba(255, 255, 255, 0.07);
+            padding: 45px 30px;
+            border-radius: 28px;
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5), 
+                        inset 0 1px 0 rgba(255, 255, 255, 0.2);
             border: 1px solid rgba(255, 255, 255, 0.1);
             width: 100%;
-            max-width: 380px; /* Tamaño perfecto para que en PC no se vea gigante ni deforme */
-            transition: transform 0.3s ease;
+            max-width: 380px;
         }
 
-        /* Animación del logotipo */
+        /* Animación del Logotipo */
         .logo-placeholder {
-            width: 140px;
-            height: 140px;
-            background: linear-gradient(45deg, #ff416c, #ff4b2b);
-            border-radius: 50%;
+            width: 150px;
+            height: 150px;
             margin: 0 auto 25px auto;
+            border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 45px;
-            box-shadow: 0 0 25px rgba(255, 75, 43, 0.5);
-            animation: pulse 2.5s infinite ease-in-out;
+            animation: pulse 3s infinite ease-in-out;
+        }
+
+        .logo-placeholder img {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 4px solid rgba(255, 255, 255, 0.8);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
         }
 
         @keyframes pulse {
-            0% { transform: scale(1); box-shadow: 0 0 25px rgba(255, 75, 43, 0.5); }
-            50% { transform: scale(1.05); box-shadow: 0 0 35px rgba(255, 75, 43, 0.8); }
-            100% { transform: scale(1); box-shadow: 0 0 25px rgba(255, 75, 43, 0.5); }
+            0% { transform: scale(1); filter: drop-shadow(0 0 10px rgba(44, 83, 100, 0.6)); }
+            50% { transform: scale(1.04); filter: drop-shadow(0 0 25px rgba(0, 212, 255, 0.8)); }
+            100% { transform: scale(1); filter: drop-shadow(0 0 10px rgba(44, 83, 100, 0.6)); }
         }
 
         h1 {
@@ -67,57 +88,52 @@
             font-weight: 700;
             margin-bottom: 6px;
             letter-spacing: 0.5px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
         }
 
         .subtitle {
             font-size: 13px;
-            color: #b0bec5;
-            margin-bottom: 30px;
+            color: #a5d6a7; /* Color verde claro pastel muy moderno para destacar la ubicación */
+            margin-bottom: 35px;
             text-transform: uppercase;
             letter-spacing: 2px;
             font-weight: 600;
         }
 
-        /* Reproductor nativo adaptado al ancho del contenedor */
+        /* Diseño responsivo para el reproductor nativo del sistema */
         audio {
             width: 100%;
             outline: none;
         }
 
         .footer-text {
-            margin-top: 30px;
+            margin-top: 35px;
             font-size: 12px;
-            color: rgba(255, 255, 255, 0.35);
+            color: rgba(255, 255, 255, 0.4);
             letter-spacing: 1px;
         }
 
-        /* Ajustes específicos para pantallas muy pequeñas (celulares antiguos) */
         @media (max-width: 320px) {
-            .player-container {
-                padding: 30px 15px;
-            }
-            .logo-placeholder {
-                width: 110px;
-                height: 110px;
-                font-size: 35px;
-            }
+            .player-container { padding: 30px 20px; }
+            .logo-placeholder { width: 120px; height: 120px; }
             h1 { font-size: 24px; }
         }
     </style>
 </head>
 <body>
 
-    <div class="logo-placeholder" style="background: none; box-shadow: none;">
-    <img src="turadiocoveroriginaldos.jpg" alt="Logo TURADIO" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover; border: 3px solid #fff;">
-</div>
-
+    <div class="player-container">
+        <!-- Contenedor de tu logotipo enlazado (usa logo.png) -->
+        <div class="logo-placeholder">
+            <img src="logo.png" alt="Logo TURADIO">
+        </div>
         
         <h1>TURADIO</h1>
         <div class="subtitle">Caracas · Venezuela</div>
         
-        <!-- Tu streaming directo de Zeno -->
+        <!-- Tu señal directa de Zeno Media -->
         <audio controls autoplay>
-            <source src="https://stream.zeno.fm/kns3mkxb6ehvv" type="audio/mpeg">
+            <source src="https://zeno.fm" type="audio/mpeg">
             Tu dispositivo no soporta este reproductor de audio.
         </audio>
 
@@ -126,3 +142,4 @@
 
 </body>
 </html>
+
