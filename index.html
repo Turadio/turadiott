@@ -10,8 +10,8 @@
         html, body {
             width: 100%;
             height: 100%;
-            overflow: hidden; /* Sin scroll */
-            background: transparent; /* Fondo transparente para TikTok */
+            overflow: hidden;
+            background: transparent;
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
         }
 
@@ -23,11 +23,12 @@
             align-items: center;
             justify-content: center;
             padding: 10px;
+            gap: 12px;
         }
 
         /* Carátula cuadrada */
         .cover-container {
-            width: 70%;              /* Ajusta este % para agrandar/reducir */
+            width: 68%;
             max-width: 320px;
             aspect-ratio: 1 / 1;
             border-radius: 18px;
@@ -45,43 +46,78 @@
             display: block;
         }
 
-        .cover-container img.loaded {
-            opacity: 1;
-        }
+        .cover-container img.loaded { opacity: 1; }
 
-        /* Título y artista */
-        .info {
-            margin-top: 14px;
-            text-align: center;
+        /* === Reproductor de audio compacto === */
+        .audio-container {
             width: 90%;
             max-width: 320px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        audio {
+            width: 100%;
+            height: 34px;
+            outline: none;
+            border-radius: 17px;
+            /* Filtro sutil para que combine con el estilo oscuro */
+            filter: invert(1) hue-rotate(180deg) brightness(0.9) contrast(1.1);
+            opacity: 0.95;
+        }
+
+        /* === Texto con fondo tipo píldora para máxima legibilidad === */
+        .info {
+            text-align: center;
+            width: 92%;
+            max-width: 340px;
+            padding: 10px 16px;
+            background: rgba(0, 0, 0, 0.65);
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
         }
 
         .song-title {
-            font-size: 18px;
-            font-weight: 700;
+            font-size: 19px;
+            font-weight: 800;
             color: #ffffff;
             line-height: 1.25;
             margin-bottom: 4px;
-            text-shadow: 0 2px 6px rgba(0, 0, 0, 0.8);
             word-break: break-word;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.9);
         }
 
         .song-artist {
-            font-size: 14px;
-            font-weight: 500;
-            color: #a5d6a7;
-            text-shadow: 0 2px 6px rgba(0, 0, 0, 0.8);
+            font-size: 15px;
+            font-weight: 600;
+            color: #7CFFB2; /* Verde más vivo y legible que el anterior */
             word-break: break-word;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.9);
+            letter-spacing: 0.3px;
         }
     </style>
 </head>
 <body>
 
     <div class="wrapper">
+        <!-- Carátula -->
         <div class="cover-container">
             <img id="album-art" src="turadiocoveroriginaldos.jpg" alt="Cover">
         </div>
+
+        <!-- Reproductor compacto -->
+        <div class="audio-container">
+            <audio id="player" controls autoplay>
+                <source src="https://stream.zeno.fm/kns3mkxb6ehvv" type="audio/mpeg">
+                Tu dispositivo no soporta este reproductor.
+            </audio>
+        </div>
+
+        <!-- Título y artista con fondo para legibilidad -->
         <div class="info">
             <div class="song-title" id="song-title">Cargando...</div>
             <div class="song-artist" id="song-artist"></div>
@@ -97,8 +133,21 @@
             const titleEl = document.getElementById('song-title');
             const artistEl = document.getElementById('song-artist');
             const albumArtEl = document.getElementById('album-art');
+            const playerEl = document.getElementById('player');
 
             let lastSearchedQuery = '';
+
+            // --- Forzar reproducción automática (algunos navegadores lo bloquean) ---
+            function tryPlay() {
+                const promise = playerEl.play();
+                if (promise !== undefined) {
+                    promise.catch(() => {
+                        // Si el navegador bloquea el autoplay, lo intentamos al primer clic
+                        document.body.addEventListener('click', () => playerEl.play(), { once: true });
+                    });
+                }
+            }
+            window.addEventListener('load', tryPlay);
 
             // --- Buscar carátula en iTunes ---
             async function fetchAlbumArt(artist, title) {
@@ -124,7 +173,6 @@
                 }
             }
 
-            // --- Actualizar imagen con fundido ---
             function updateAlbumArt(src) {
                 const newImg = new Image();
                 newImg.src = src;
@@ -154,11 +202,9 @@
 
                     if (streamTitle && streamTitle.trim() !== '') {
                         const partes = streamTitle.split(' - ');
-
                         if (partes.length >= 2) {
                             const artista = partes[0].trim();
                             const titulo = partes.slice(1).join(' - ').trim();
-
                             artistEl.textContent = artista;
                             titleEl.textContent = titulo;
                             fetchAlbumArt(artista, titulo);
@@ -172,9 +218,7 @@
                 }
             };
 
-            eventSource.onerror = function() {
-                // Silencioso para no molestar en el live
-            };
+            eventSource.onerror = function() {};
         })();
     </script>
 
