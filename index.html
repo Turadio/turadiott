@@ -172,38 +172,50 @@
         <div class="footer-text">Música sin fronteras</div>
     </div>
 
-    <!-- SCRIPT TÉCNICO CON LAS URL DE CONSULTA RECONECTADAS -->
+    <!-- REESCRITURA COMPLETA DEL SCRIPT SEGÚN LA API OFICIAL EN TIEMPO REAL DE ZENO -->
     <script>
-        const mountpoint = 'kns3mkxb6ehvv';
-        const campoTexto = document.getElementById('now-playing');
-
-        function obtenerCancion() {
-            // URL de la API restaurada a la dirección correcta de Zeno Media
-            fetch(`https://zeno.fm{mountpoint}`)
-                .then(response => {
-                    if (!response.ok) throw new Error('Error de conexión');
-                    return response.json();
-                })
-                .then(resultado => {
-                    if (resultado && resultado.data && resultado.data.streamTitle) {
-                        campoTexto.innerText = resultado.data.streamTitle;
-                    } else if (resultado && resultado.streamTitle) {
-                        campoTexto.innerText = resultado.streamTitle;
-                    } else {
-                        campoTexto.innerText = "TURADIO - En Vivo";
-                    }
-                })
-                .catch(() => {
-                    if (campoTexto.innerText === "Sintonizando señal...") {
-                        campoTexto.innerText = "TURADIO - En Vivo";
-                    }
-                });
-        }
-
         document.addEventListener("DOMContentLoaded", () => {
-            obtenerCancion();
-            // Revisa el estado de tu VirtualDJ cada 10 segundos
-            setInterval(obtenerCancion, 10000);
+            const mountpoint = 'kns3mkxb6ehvv';
+            const campoTexto = document.getElementById('now-playing');
+            let eventSource = null;
+
+            function iniciarSuscripcionMetadatos() {
+                // Cerramos cualquier conexión previa para evitar duplicados
+                if (eventSource) {
+                    eventSource.close();
+                }
+
+                // Ruta SSE oficial y autorizada por Zeno Media para transmisiones en tiempo real
+                const urlApi = `https://zeno.fm{mountpoint}`;
+                
+                eventSource = new EventSource(urlApi);
+
+                eventSource.onmessage = function(event) {
+                    try {
+                        const data = JSON.parse(event.data);
+                        // Filtramos las diferentes variables donde Zeno guarda el nombre de la canción
+                        if (data && data.streamTitle) {
+                            campoTexto.innerText = data.streamTitle;
+                        } else if (data && data.title) {
+                            campoTexto.innerText = data.title;
+                        }
+                    } catch (e) {
+                        // En caso de que el servidor envíe texto plano directo
+                        if (event.data && typeof event.data === "string" && !event.data.includes("{")) {
+                            campoTexto.innerText = event.data;
+                        }
+                    }
+                };
+
+                eventSource.onerror = function() {
+                    eventSource.close();
+                    // Si el servidor de Zeno parpadea o se desconecta, intenta reconectar automáticamente en 10 segundos
+                    setTimeout(iniciarSuscripcionMetadatos, 10000);
+                };
+            }
+
+            // Iniciar la escucha activa
+            iniciarSuscripcionMetadatos();
         });
     </script>
 </body>
