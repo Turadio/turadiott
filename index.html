@@ -93,17 +93,74 @@
 
         .subtitle {
             font-size: 13px;
-            color: #a5d6a7; /* Color verde claro pastel muy moderno para destacar la ubicación */
+            color: #a5d6a7; /* Color verde claro pastel */
             margin-bottom: 35px;
             text-transform: uppercase;
             letter-spacing: 2px;
             font-weight: 600;
         }
 
-        /* Diseño responsivo para el reproductor nativo del sistema */
+        /* CONTENEDOR VISUAL PARA MOSTRAR LA CANCIÓN */
+        .metadata-container {
+            margin-bottom: 25px;
+            background: rgba(0, 0, 0, 0.25);
+            padding: 14px;
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .metadata-label {
+            font-size: 10px;
+            text-transform: uppercase;
+            color: #00d4ff;
+            letter-spacing: 1.5px;
+            margin-bottom: 6px;
+            font-weight: bold;
+        }
+        
+        /* EFECTO DE TEXTO EN MOVIMIENTO (MARQUESINA) SI EL TÍTULO ES LARGO */
+        .marquee-box {
+            overflow: hidden;
+            position: relative;
+            width: 100%;
+            height: 20px;
+        }
+        #now-playing {
+            font-size: 15px;
+            font-weight: 500;
+            color: #ffffff;
+            position: absolute;
+            width: 100%;
+            white-space: nowrap;
+            animation: marquee 12s linear infinite;
+        }
+        @keyframes marquee {
+            0% { transform: translateX(100%); }
+            100% { transform: translateX(-100%); }
+        }
+
+        /* REPRODUCTOR PERSONALIZADO ESTILO BOTÓN MODERNO */
+        .custom-audio-box {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50px;
+            padding: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+        }
         audio {
             width: 100%;
             outline: none;
+        }
+
+        /* OCULTACIÓN ESTRATÉGICA DEL IFRAME DE ZENO */
+        .iframe-oculto {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            opacity: 0;
+            pointer-events: none;
+            left: -9999px;
         }
 
         .footer-text {
@@ -118,49 +175,15 @@
             .logo-placeholder { width: 120px; height: 120px; }
             h1 { font-size: 24px; }
         }
-
-        /* ESTILOS DE LOS METADATOS EN VIVO */
-        .metadata-container {
-            margin-top: -15px;
-            margin-bottom: 25px;
-            background: rgba(0, 0, 0, 0.2);
-            padding: 12px;
-            border-radius: 14px;
-            border: 1px solid rgba(255, 255, 255, 0.05);
-        }
-        .metadata-label {
-            font-size: 10px;
-            text-transform: uppercase;
-            color: #00d4ff;
-            letter-spacing: 1.5px;
-            margin-bottom: 4px;
-            font-weight: bold;
-        }
-        #now-playing {
-            font-size: 14px;
-            font-weight: 500;
-            color: #ffffff;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        /* DISEÑO PARA ADAPTAR EL IFRAME INTEGRADO DE ZENO */
-        .contenedor-iframe-zeno {
-            background: rgba(0, 0, 0, 0.3);
-            border-radius: 18px;
-            padding: 8px;
-            overflow: hidden;
-        }
-        .contenedor-iframe-zeno iframe {
-            border-radius: 12px;
-        }
     </style>
 </head>
 <body>
 
+    <!-- EL IFRAME DE ZENO QUEDA OPERANDO EN CONTROL TOTAL DE FONDO, SIN VERSE -->
+    <iframe class="iframe-oculto" src="https://zeno.fm" frameborder="0" scrolling="no"></iframe>
+
     <div class="player-container">
-        <!-- Contenedor de tu logotipo enlazado (usa logo.png) -->
+        <!-- Contenedor de tu logotipo enlazado -->
         <div class="logo-placeholder">
             <img src="turadiocoveroriginaldos.jpg" alt="Logo TURADIO">
         </div>
@@ -168,26 +191,30 @@
         <h1>TURADIO</h1>
         <div class="subtitle">Caracas · Venezuela</div>
         
-        <!-- CONTENEDOR VISUAL AUTOMÁTICO ADAPTADO AL IFRAME DE ZENO -->
+        <!-- TU CAJA DE CANCIÓN LIMPIA DE MARCAS -->
         <div class="metadata-container">
             <div class="metadata-label">🎵 Sonando ahora</div>
-            <div id="now-playing">Cargando datos del streaming...</div>
+            <div class="marquee-box">
+                <div id="now-playing">TURADIO - En Vivo</div>
+            </div>
         </div>
         
-        <!-- INTEGRACIÓN DE TU IFRAME OFICIAL TOTALMENTE ADAPTADO AL DISEÑO CRISTAL -->
-        <div class="contenedor-iframe-zeno">
-            <iframe src="https://zeno.fm/player/turadiomaxi" width="100%" height="180" frameborder="0" scrolling="no"></iframe>
+        <!-- REPRODUCTOR DIRECTO NATIVO IMPULSADO POR LA RED DE ZENO -->
+        <div class="custom-audio-box">
+            <audio controls autoplay>
+                <source src="https://zeno.fm" type="audio/mpeg">
+                Tu dispositivo no soporta este reproductor de audio.
+            </audio>
         </div>
 
         <div class="footer-text">Música sin fronteras</div>
     </div>
 
-    <!-- CÓDIGO PUENTE: SE ENCARGA DE LEER EL CONTENIDO INTERNO DEL IFRAME DE ZENO -->
+    <!-- SCRIPT DE CONSULTA DIRECTA DE TEXTO (EVITA BLOQUEOS POR CORS) -->
     <script>
-        function sincronizarTextoZeno() {
+        function actualizarMetadataLimpia() {
             const campoTexto = document.getElementById('now-playing');
-            
-            // Función interna para consultar la metadata estructurada limpia de respaldo de Zeno
+            // Endpoint alternativo de metadatos públicos provisto por la infraestructura de Zeno
             fetch('https://zeno.fm')
                 .then(res => res.json())
                 .then(resultado => {
@@ -195,20 +222,19 @@
                         campoTexto.innerText = resultado.data.streamTitle;
                     } else if (resultado && resultado.streamTitle) {
                         campoTexto.innerText = resultado.streamTitle;
-                    } else {
-                        campoTexto.innerText = "TURADIO - En Vivo";
                     }
                 })
                 .catch(() => {
-                    campoTexto.innerText = "TURADIO - En Vivo";
+                    if(campoTexto.innerText === "TURADIO - En Vivo") {
+                        campoTexto.innerText = "TURADIO - En Vivo";
+                    }
                 });
         }
 
         document.addEventListener("DOMContentLoaded", () => {
-            // Sincroniza el lector de texto inmediatamente
-            sincronizarTextoZeno();
-            // Revisa actualizaciones de canciones de forma silenciosa cada 8 segundos
-            setInterval(sincronizarTextoZeno, 8000);
+            actualizarMetadataLimpia();
+            // Consulta de metadatos cada 10 segundos de forma independiente
+            setInterval(actualizarMetadataLimpia, 10000);
         });
     </script>
 </body>
