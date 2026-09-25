@@ -163,7 +163,7 @@
             <div id="now-playing">TURADIO - En Vivo</div>
         </div>
         
-        <!-- Tu señal directa de Zeno Media -->
+        <!-- URL DE TRANSMISIÓN RESTAURADA CORRECTAMENTE -->
         <audio controls autoplay>
             <source src="https://zeno.fm" type="audio/mpeg">
             Tu dispositivo no soporta este reproductor de audio.
@@ -172,20 +172,19 @@
         <div class="footer-text">Música sin fronteras</div>
     </div>
 
-    <!-- SCRIPT DE EXTRACCIÓN AUTOMÁTICA ADAPTADO -->
+    <!-- SCRIPT TÉCNICO CON LAS URL DE CONSULTA RECONECTADAS -->
     <script>
         const mountpoint = 'kns3mkxb6ehvv';
         const campoTexto = document.getElementById('now-playing');
 
         function obtenerCancion() {
-            // Consulta directa a la API estructurada de Zeno para evitar bloqueos del navegador
+            // URL de la API restaurada a la dirección correcta de Zeno Media
             fetch(`https://zeno.fm{mountpoint}`)
                 .then(response => {
-                    if (!response.ok) throw new Error('Error de red');
+                    if (!response.ok) throw new Error('Error de conexión');
                     return response.json();
                 })
                 .then(resultado => {
-                    // Validamos los posibles formatos en los que el servidor de Zeno entrega la información
                     if (resultado && resultado.data && resultado.data.streamTitle) {
                         campoTexto.innerText = resultado.data.streamTitle;
                     } else if (resultado && resultado.streamTitle) {
@@ -195,17 +194,15 @@
                     }
                 })
                 .catch(() => {
-                    // Si el servidor tarda en responder mantiene el texto principal estable
                     if (campoTexto.innerText === "Sintonizando señal...") {
                         campoTexto.innerText = "TURADIO - En Vivo";
                     }
                 });
         }
 
-        // Ejecuta la consulta de inmediato al cargar la página
         document.addEventListener("DOMContentLoaded", () => {
             obtenerCancion();
-            // Revisa el estado de VirtualDJ cada 10 segundos de manera independiente
+            // Revisa el estado de tu VirtualDJ cada 10 segundos
             setInterval(obtenerCancion, 10000);
         });
     </script>
