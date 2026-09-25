@@ -212,9 +212,7 @@
 <body>
 
     <!-- REPRODUCTOR SILENCIOSO INTEGRADO DE FORMA INVISIBLE -->
-    <audio id="radio-stream" preload="none">
-        <source src="https://stream.zeno.fm/kns3mkxb6ehvv" type="audio/mpeg">
-    </audio>
+    <audio id="radio-stream" preload="none"></audio>
 
     <div class="player-container">
         <!-- Contenedor de tu logotipo enlazado -->
@@ -244,45 +242,40 @@
         <div class="footer-text">Música sin fronteras</div>
     </div>
 
-    <!-- SCRIPT TÉCNICO COMPLETO PARA AUDIO Y CORRECCIÓN DE RESTRICCIONES DE RED -->
+    <!-- SCRIPT CORREGIDO Y OPTIMIZADO PARA EVITAR TRUNCAMIENTOS -->
     <script>
-        const mountpoint = 'kns3mkxb6ehvv';
-        const campoTexto = document.getElementById('now-playing');
-        const audioPlayer = document.getElementById('radio-stream');
-        const playButton = document.getElementById('btn-control-play');
-        const iconPlay = document.getElementById('icon-p');
-        const iconPause = document.getElementById('icon-s');
+        const m = 'kns3mkxb6ehvv',
+              txt = document.getElementById('now-playing'),
+              aud = document.getElementById('radio-stream'),
+              btn = document.getElementById('btn-control-play'),
+              iPl = document.getElementById('icon-p'),
+              iPa = document.getElementById('icon-s');
 
-        // Control Lógico de Reproducción / Pausa
-        playButton.addEventListener('click', () => {
-            if (audioPlayer.paused) {
-                // Para flujos de streaming en vivo, refrescar la URL limpia el caché de retraso
-                audioPlayer.src = `https://zeno.fm{mountpoint}?t=${Date.now()}`;
-                audioPlayer.play()
-                    .then(() => {
-                        iconPlay.style.display = 'none';
-                        iconPause.style.display = 'flex';
-                    })
-                    .catch(err => console.error("Error al arrancar el streaming:", err));
+        btn.addEventListener('click', () => {
+            if (aud.paused) {
+                aud.src = `https://zeno.fm{m}?t=${Date.now()}`;
+                aud.play().then(() => {
+                    iPl.style.display = 'none'; iPa.style.display = 'flex';
+                }).catch(e => console.error(e));
             } else {
-                audioPlayer.pause();
-                // Cortar la descarga para ahorrarle datos de internet al oyente
-                audioPlayer.src = '';
-                iconPlay.style.display = 'block';
-                iconPause.style.display = 'none';
+                aud.pause(); aud.src = '';
+                iPl.style.display = 'block'; iPa.style.display = 'none';
             }
         });
 
-        // Consulta estructurada directa a la API JSON de Zeno Media
-        function actualizarMetadataLimpia() {
-            fetch(`https://zeno.fm{mountpoint}`)
+        function updateMeta() {
+            fetch(`https://zeno.fm{m}`)
+                .then(r => r.json())
                 .then(res => {
-                    if (!res.ok) throw new Error();
-                    return res.json();
-                })
-                .then(resultado => {
-                    if (resultado && resultado.data && resultado.data.streamTitle) {
-                        campoTexto.innerText = resultado.data.streamTitle;
-                    } else if (resultado && resultado.streamTitle) {
-                        campoTexto.innerText = resultado.streamTitle;
-                    }
+                    let s = (res && res.data) ? res.data.streamTitle : (res ? res.streamTitle : '');
+                    if (s) txt.innerText = s;
+                }).catch(() => {});
+        }
+
+        document.addEventListener("DOMContentLoaded", () => {
+            updateMeta();
+            setInterval(updateMeta, 10000);
+        });
+    </script>
+</body>
+</html>
