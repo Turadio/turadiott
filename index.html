@@ -5,11 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Radio Maxi - En Vivo</title>
     <style>
-        /* Estilos generales con modo oscuro elegante */
+        /* Estilos generales estilo modo oscuro elegante */
         body {
             background-color: #0d0d11;
             color: #ffffff;
-            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            font-family: 'Segoe UI', Roboto, Arial, sans-serif;
             text-align: center;
             margin: 0;
             padding: 0;
@@ -19,71 +19,84 @@
             min-height: 100vh;
         }
 
-        /* Contenedor optimizado para la pantalla de TikTok en móviles */
+        /* Contenedor tipo tarjeta optimizado para abrir desde TikTok */
         .tarjeta-radio {
             background: linear-gradient(145deg, #16161f, #1f1f2e);
             border: 1px solid #2a2a3a;
-            border-radius: 20px;
-            padding: 30px 20px;
+            border-radius: 25px;
+            padding: 35px 25px;
             width: 90%;
-            max-width: 450px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            max-width: 400px;
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
             box-sizing: border-box;
         }
 
-        /* Logotipo de tu radio */
+        /* Tu Logotipo Circular */
         .logo-estacion {
-            width: 120px;
-            height: 120px;
+            width: 130px;
+            height: 130px;
             border-radius: 50%;
             object-fit: cover;
-            border: 3px solid #ff0055; /* Color de acento estilo TikTok */
-            box-shadow: 0 0 15px rgba(255, 0, 85, 0.4);
-            margin-bottom: 15px;
+            border: 3px solid #ff0055; /* Borde color neón estilo TikTok */
+            box-shadow: 0 0 20px rgba(255, 0, 85, 0.5);
+            margin-bottom: 20px;
         }
 
         h1 {
-            font-size: 1.6rem;
-            margin: 10px 0 5px 0;
+            font-size: 1.8rem;
+            margin: 0 0 5px 0;
             letter-spacing: 0.5px;
         }
 
-        /* Datos de la frecuencia / Transmisión */
+        /* Tu Frecuencia de Transmisión */
         .info-frecuencia {
-            font-size: 1rem;
-            color: #00f2fe; /* Color cyan para destacar la frecuencia */
+            font-size: 1.1rem;
+            color: #00f2fe; /* Color cyan destacado */
             font-weight: bold;
             text-transform: uppercase;
             margin-bottom: 5px;
+            letter-spacing: 1px;
         }
 
         .subtitulo {
             font-size: 0.9rem;
             color: #aaa;
             margin-top: 0;
-            margin-bottom: 25px;
+            margin-bottom: 30px;
         }
 
-        /* Contenedor responsivo del reproductor Zeno */
-        .reproductor-zeno {
+        /* Caja contenedora del reproductor de audio */
+        .caja-audio {
             background-color: #09090d;
-            border-radius: 12px;
-            padding: 10px;
+            border-radius: 15px;
+            padding: 15px;
+            border: 1px solid #1f1f2e;
+        }
+
+        /* Reproductor nativo de HTML5 adaptado al 100% de ancho */
+        audio {
+            width: 100%;
+            outline: none;
+        }
+
+        /* Etiqueta de En Vivo */
+        .badge-vivo {
+            display: inline-block;
+            background-color: #ff0055;
+            color: white;
+            font-size: 0.75rem;
+            font-weight: bold;
+            padding: 4px 10px;
+            border-radius: 5px;
             margin-bottom: 15px;
-            overflow: hidden;
+            text-transform: uppercase;
+            animation: parpadeo 1.5s infinite;
         }
 
-        .enlace-credito {
-            display: block;
-            font-size: 0.75em;
-            line-height: 12px;
-            color: #666;
-            text-decoration: none;
-            margin-top: 8px;
-        }
-
-        .enlace-credito:hover {
-            color: #ff0055;
+        @keyframes parpadeo {
+            0% { opacity: 0.5; }
+            50% { opacity: 1; }
+            100% { opacity: 0.5; }
         }
     </style>
 </head>
@@ -91,20 +104,26 @@
 
     <div class="tarjeta-radio">
         
-        <!-- LOGO DE LA RADIO: Reemplaza 'logo.png' por la URL o ruta real de tu imagen -->
-        <img src="logo.png" alt="Logo Radio Maxi" class="logo-estacion">
+        <!-- ESTADO EN VIVO -->
+        <span class="badge-vivo">● EN VIVO DESDE TIKTOK</span>
 
-        <!-- NOMBRE DE LA EMISORA -->
+        <!-- TU LOGO (Pon aquí la dirección de tu imagen) -->
+        <img src="logo.png" alt="Radio Maxi Logo" class="logo-estacion">
+
+        <!-- NOMBRE DE LA RADIO -->
         <h1>Radio Maxi</h1>
         
-        <!-- FRECUENCIA DE TRANSMISIÓN -->
-        <div class="info-frecuencia">Frecuencia Digital En Vivo</div>
-        <p class="subtitulo">Mezclando en directo con VirtualDJ</p>
+        <!-- TU FRECUENCIA -->
+        <div class="info-frecuencia">Frecuencia Digital</div>
+        <p class="subtitulo">Alimentado por VirtualDJ & BUTT</p>
 
-        <!-- REPRODUCTOR DE ZENO.FM (CON ANCHO ADAPTATIVO AL 100%) -->
-        <div class="reproductor-zeno">
-            <iframe src="https://zeno.fm" width="100%" height="250" frameborder="0" scrolling="no"></iframe>
-            <a href="https://zeno.fm/" target="_blank" class="enlace-credito">A Zeno.FM Station</a>
+        <!-- REPRODUCTOR DIRECTO DE AUDIO (Carga al instante) -->
+        <div class="caja-audio">
+            <audio controls>
+                <!-- URL de transmisión directa de tu Zeno.fm -->
+                <source src="https://zeno.fm" type="audio/mpeg">
+                Tu navegador no soporta este reproductor de audio.
+            </audio>
         </div>
 
     </div>
