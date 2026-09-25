@@ -169,15 +169,17 @@
             Tu dispositivo no soporta este reproductor de audio.
         </audio>
 
-        <div class="footer-text">Música sin fronteras</div>
+        <div class="footer-text">Música sin frontiers</div>
     </div>
 
-    <!-- NUEVA RUTINA JAVASCRIPT ADICIONADA PARA EXTRAER DATOS EN TIEMPO REAL -->
+    <!-- RUTINA JAVASCRIPT CORREGIDA CON DOBLE PROTOCOLO PARA METADATOS -->
     <script>
+        const mountpoint = 'kns3mkxb6ehvv';
+        const campoTexto = document.getElementById('now-playing');
+
+        // Método 1: Conexión continua por EventSource (Tiempo Real)
         function conectarMetadatos() {
-            // Se extrae el Mountpoint 'kns3mkxb6ehvv' detectado de tu señal directa de Zeno.fm
-            const apiLink = 'https://zeno.fm';
-            const campoTexto = document.getElementById('now-playing');
+            const apiLink = `https://zeno.fm{mountpoint}`;
             
             try {
                 const eventSource = new EventSource(apiLink);
@@ -186,23 +188,46 @@
                     const data = JSON.parse(event.data);
                     if (data && data.streamTitle) {
                         campoTexto.innerText = data.streamTitle;
-                    } else {
-                        campoTexto.innerText = "TURADIO - En Vivo";
                     }
                 };
 
                 eventSource.onerror = function() {
-                    console.log("Reconectando a los metadatos de Zeno...");
                     eventSource.close();
-                    setTimeout(conectarMetadatos, 5000); // Intenta reconectar en 5 segundos si falla
+                    // Si falla el tiempo real, activamos el Método 2 de respaldo
+                    activarRespaldoFetch();
                 };
             } catch (error) {
-                console.error("Error en la conexión de metadatos:", error);
-                campoTexto.innerText = "TURADIO - En Vivo";
+                activarRespaldoFetch();
             }
         }
 
-        // Ejecutar la rutina al cargar la página
+        // Método 2: Respaldo por consulta tradicional si falla el servidor continuo
+        let intervaloRespaldo = null;
+        function activarRespaldoFetch() {
+            if (intervaloRespaldo) return; // Evita duplicar tareas
+            
+            const urlFetch = `https://zeno.fm{mountpoint}`;
+            
+            const consultarAhora = () => {
+                fetch(urlFetch)
+                    .then(response => response.json())
+                    .then(resultado => {
+                        if (resultado && resultado.data && resultado.data.streamTitle) {
+                            campoTexto.innerText = resultado.data.streamTitle;
+                        } else {
+                            campoTexto.innerText = "TURADIO - En Vivo";
+                        }
+                    })
+                    .catch(() => {
+                        campoTexto.innerText = "TURADIO - En Vivo";
+                    });
+            };
+
+            consultarAhora();
+            intervaloRespaldo = setInterval(consultarAhora, 12000); // Consulta cada 12 segundos
+        }
+
+        // Iniciar el sistema al cargar la página
         document.addEventListener("DOMContentLoaded", conectarMetadatos);
     </script>
 </body>
