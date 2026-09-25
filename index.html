@@ -119,7 +119,7 @@
             h1 { font-size: 24px; }
         }
 
-        /* NUEVOS ESTILOS ADICIONADOS PARA LOS METADATOS EN VIVO */
+        /* ESTILOS ADICIONADOS PARA LOS METADATOS EN VIVO */
         .metadata-container {
             margin-top: -15px;
             margin-bottom: 25px;
@@ -157,7 +157,7 @@
         <h1>TURADIO</h1>
         <div class="subtitle">Caracas · Venezuela</div>
         
-        <!-- NUEVO CONTENEDOR VISUAL ADICIONADO PARA MOSTRAR LA CANCIÓN -->
+        <!-- CONTENEDOR VISUAL PARA MOSTRAR LA CANCIÓN -->
         <div class="metadata-container">
             <div class="metadata-label">🎵 Sonando ahora</div>
             <div id="now-playing">Sintonizando señal...</div>
@@ -165,69 +165,84 @@
         
         <!-- Tu señal directa de Zeno Media -->
         <audio controls autoplay>
-            <source src="https://stream.zeno.fm/kns3mkxb6ehvv" type="audio/mpeg">
+            <source src="https://zeno.fm" type="audio/mpeg">
             Tu dispositivo no soporta este reproductor de audio.
         </audio>
 
-        <div class="footer-text">Música sin frontiers</div>
+        <div class="footer-text">Música sin fronteras</div>
     </div>
 
-    <!-- RUTINA JAVASCRIPT CORREGIDA CON DOBLE PROTOCOLO PARA METADATOS -->
+    <!-- RUTINA JAVASCRIPT MEJORADA Y CORREGIDA PARA EL FLUJO DE ZENO.FM -->
     <script>
         const mountpoint = 'kns3mkxb6ehvv';
         const campoTexto = document.getElementById('now-playing');
 
-        // Método 1: Conexión continua por EventSource (Tiempo Real)
         function conectarMetadatos() {
+            // URL oficial de transmisión de Server-Sent Events (SSE) para metadatos de Zeno
             const apiLink = `https://zeno.fm{mountpoint}`;
             
             try {
                 const eventSource = new EventSource(apiLink);
                 
                 eventSource.onmessage = function(event) {
-                    const data = JSON.parse(event.data);
-                    if (data && data.streamTitle) {
-                        campoTexto.innerText = data.streamTitle;
+                    try {
+                        // Zeno envía un JSON estructurado en el cuerpo del mensaje
+                        const data = JSON.parse(event.data);
+                        
+                        if (data && data.streamTitle) {
+                            campoTexto.innerText = data.streamTitle;
+                        } else if (data && data.title) {
+                            campoTexto.innerText = data.title;
+                        } else {
+                            campoTexto.innerText = "TURADIO - En Vivo";
+                        }
+                    } catch (e) {
+                        // Si Zeno envía el texto directamente en lugar de un JSON plano
+                        if (event.data && typeof event.data === "string" && !event.data.includes("{")) {
+                            campoTexto.innerText = event.data;
+                        }
                     }
                 };
 
                 eventSource.onerror = function() {
                     eventSource.close();
-                    // Si falla el tiempo real, activamos el Método 2 de respaldo
-                    activarRespaldoFetch();
+                    // Respaldo inmediato si el canal SSE es bloqueado por el navegador local
+                    setTimeout(activarRespaldoFetch, 2000);
                 };
             } catch (error) {
                 activarRespaldoFetch();
             }
         }
 
-        // Método 2: Respaldo por consulta tradicional si falla el servidor continuo
-        let intervaloRespaldo = null;
         function activarRespaldoFetch() {
-            if (intervaloRespaldo) return; // Evita duplicar tareas
-            
+            // Dirección JSON alternativa que no usa EventSource
             const urlFetch = `https://zeno.fm{mountpoint}`;
             
-            const consultarAhora = () => {
+            const consultarServidor = () => {
                 fetch(urlFetch)
-                    .then(response => response.json())
-                    .then(resultado => {
-                        if (resultado && resultado.data && resultado.data.streamTitle) {
-                            campoTexto.innerText = resultado.data.streamTitle;
-                        } else {
-                            campoTexto.innerText = "TURADIO - En Vivo";
+                    .then(res => res.json())
+                    .then(objeto => {
+                        // Verificación del mapeo interno de la respuesta JSON de Zeno
+                        if (objeto && objeto.data && objeto.data.streamTitle) {
+                            campoTexto.innerText = objeto.data.streamTitle;
+                        } else if (objeto && objeto.streamTitle) {
+                            campoTexto.innerText = objeto.streamTitle;
                         }
                     })
                     .catch(() => {
-                        campoTexto.innerText = "TURADIO - En Vivo";
+                        // Mantiene un texto por defecto amigable en lugar de quedarse en blanco
+                        if(campoTexto.innerText === "Sintonizando señal...") {
+                            campoTexto.innerText = "TURADIO - En Vivo";
+                        }
                     });
             };
 
-            consultarAhora();
-            intervaloRespaldo = setInterval(consultarAhora, 12000); // Consulta cada 12 segundos
+            consultarServidor();
+            // Verifica cambios en el historial del servidor de Zeno cada 10 segundos
+            setInterval(consultarServidor, 10000);
         }
 
-        // Iniciar el sistema al cargar la página
+        // Ejecutar al cargar la estructura de la web
         document.addEventListener("DOMContentLoaded", conectarMetadatos);
     </script>
 </body>
