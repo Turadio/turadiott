@@ -100,99 +100,20 @@
             font-weight: 600;
         }
 
-        /* CONTENEDOR VISUAL PARA MOSTRAR LA CANCIÓN */
-        .metadata-container {
-            margin-bottom: 25px;
-            background: rgba(0, 0, 0, 0.25);
-            padding: 14px;
-            border-radius: 16px;
-            border: 1px solid rgba(255, 255, 255, 0.08);
-        }
-        .metadata-label {
-            font-size: 10px;
-            text-transform: uppercase;
-            color: #00d4ff;
-            letter-spacing: 1.5px;
-            margin-bottom: 6px;
-            font-weight: bold;
-        }
-        
-        /* EFECTO DE TEXTO EN MOVIMIENTO (MARQUESINA) SI EL TÍTULO ES LARGO */
-        .marquee-box {
+        /* Contenedor adaptativo estilizado para el Iframe Oficial de Zeno */
+        .zeno-widget-box {
+            width: 100%;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 18px;
+            padding: 6px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
             overflow: hidden;
-            position: relative;
-            width: 100%;
-            height: 20px;
-        }
-        #now-playing {
-            font-size: 15px;
-            font-weight: 500;
-            color: #ffffff;
-            position: absolute;
-            width: 100%;
-            white-space: nowrap;
-            animation: marquee 12s linear infinite;
-        }
-        @keyframes marquee {
-            0% { transform: translateX(100%); }
-            100% { transform: translateX(-100%); }
+            margin-top: 10px;
         }
 
-        /* DISEÑO PREMIUM: BOTÓN CIRCULAR DE CONTROL PLAY/PAUSA */
-        .play-btn-container {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            margin: 20px 0;
-        }
-        .play-button {
-            width: 75px;
-            height: 75px;
-            background: linear-gradient(135deg, #00d4ff 0%, #0072ff 100%);
-            border: none;
-            border-radius: 50%;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 6px 20px rgba(0, 212, 255, 0.4);
-            transition: all 0.3s ease;
-            outline: none;
-        }
-        .play-button:hover {
-            transform: scale(1.08);
-            box-shadow: 0 8px 25px rgba(0, 212, 255, 0.6);
-        }
-        .play-button:active {
-            transform: scale(0.95);
-        }
-        /* Icono de Play usando formas CSS nativas */
-        .icon-play {
-            width: 0;
-            height: 0;
-            border-top: 12px solid transparent;
-            border-bottom: 12px solid transparent;
-            border-left: 20px solid white;
-            margin-left: 6px;
-        }
-        /* Icono de Pausa usando formas CSS nativas */
-        .icon-pause {
-            display: none;
-            width: 16px;
-            height: 22px;
-            justify-content: space-between;
-        }
-        .icon-pause::before, .icon-pause::after {
-            content: "";
-            width: 5px;
-            height: 100%;
-            background-color: white;
-            border-radius: 2px;
-        }
-
-        /* Ocultación técnica completa del elemento de audio del navegador */
-        audio {
-            display: none;
+        .zeno-widget-box iframe {
+            border-radius: 12px;
+            display: block;
         }
 
         .footer-text {
@@ -211,11 +132,6 @@
 </head>
 <body>
 
-    <!-- REPRODUCTOR CON LA URL FIJA PARA EVITAR BLOQUEOS DE NAVEGADOR -->
-    <audio id="radio-stream" preload="none" crossorigin="anonymous">
-        <source src="https://stream.zeno.fm/kns3mkxb6ehvv" type="audio/mpeg">
-    </audio>
-
     <div class="player-container">
         <!-- Contenedor de tu logotipo enlazado -->
         <div class="logo-placeholder">
@@ -225,59 +141,13 @@
         <h1>TURADIO</h1>
         <div class="subtitle">Caracas · Venezuela</div>
         
-        <!-- TU CAJA DE CANCIÓN LIMPIA DE MARCAS -->
-        <div class="metadata-container">
-            <div class="metadata-label">🎵 Sonando ahora</div>
-            <div class="marquee-box">
-                <div id="now-playing">TURADIO - En Vivo</div>
-            </div>
-        </div>
-        
-        <!-- INTERFAZ PREMIUM DEL BOTÓN CIRCULAR PERSONALIZADO -->
-        <div class="play-btn-container">
-            <button class="play-button" id="btn-control-play" aria-label="Reproducir">
-                <div class="icon-play" id="icon-p"></div>
-                <div class="icon-pause" id="icon-s"></div>
-            </button>
+        <!-- REPRODUCTOR OFICIAL INCRUSTADO (Muestra títulos y reproduce música sin bloqueos en TikTok/Brave) -->
+        <div class="zeno-widget-box">
+            <iframe src="https://zeno.fm" width="100%" height="250" frameborder="0" scrolling="no"></iframe>
         </div>
 
         <div class="footer-text">Música sin fronteras</div>
     </div>
 
-    <!-- SCRIPT ULTRACOMPACTO PARA EVITAR CORTES DE LONGITUD -->
-    <script>
-        const mount = 'kns3mkxb6ehvv';
-        const txtNode = document.getElementById('now-playing');
-        const p = document.getElementById('radio-stream');
-        const btn = document.getElementById('btn-control-play');
-        const iP = document.getElementById('icon-p');
-        const iS = document.getElementById('icon-s');
-
-        btn.addEventListener('click', () => {
-            if (p.paused) {
-                p.load(); // Fuerza al navegador a leer la URL fija sin bloqueos
-                p.play().then(() => {
-                    iP.style.display = 'none'; iS.style.display = 'flex';
-                }).catch(e => console.error(e));
-            } else {
-                p.pause();
-                iP.style.display = 'block'; iS.style.display = 'none';
-            }
-        });
-
-        function updateMeta() {
-            fetch(`https://zeno.fm{mount}`)
-                .then(r => r.json())
-                .then(res => {
-                    let s = (res && res.data) ? res.data.streamTitle : (res ? res.streamTitle : '');
-                    if (s) txtNode.innerText = s;
-                }).catch(() => {});
-        }
-
-        document.addEventListener("DOMContentLoaded", () => {
-            updateMeta();
-            setInterval(updateMeta, 10000);
-        });
-    </script>
 </body>
 </html>
