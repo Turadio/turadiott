@@ -2,131 +2,208 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Radio Maxi - En Vivo</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>TURADIO - En Vivo</title>
     <style>
-        /* Estilos generales estilo modo oscuro elegante */
-        body {
-            background-color: #0d0d11;
-            color: #ffffff;
-            font-family: 'Segoe UI', Roboto, Arial, sans-serif;
-            text-align: center;
+        * {
+            box-sizing: border-box;
             margin: 0;
             padding: 0;
+        }
+
+        /* Degradado moderno de alto impacto en tendencia */
+        body {
+            background: linear-gradient(135deg, #0f2027 0%, #203a43 40%, #2c5364 100%);
+            color: #ffffff;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
             display: flex;
-            justify-content: center;
+            flex-direction: column;
             align-items: center;
+            justify-content: center;
             min-height: 100vh;
+            padding: 20px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
         }
 
-        /* Contenedor tipo tarjeta optimizado para abrir desde TikTok */
-        .tarjeta-radio {
-            background: linear-gradient(145deg, #16161f, #1f1f2e);
-            border: 1px solid #2a2a3a;
-            border-radius: 25px;
-            padding: 35px 25px;
-            width: 90%;
-            max-width: 400px;
-            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
-            box-sizing: border-box;
+        /* Elemento decorativo sutil para romper el fondo plano */
+        body::before {
+            content: "";
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(44, 83, 100, 0.4) 0%, rgba(0, 0, 0, 0) 70%);
+            z-index: 1;
+            pointer-events: none;
         }
 
-        /* Tu Logotipo Circular */
-        .logo-estacion {
-            width: 130px;
-            height: 130px;
+        /* Contenedor flotante estilo Glassmorphism (efecto cristal) */
+        .player-container {
+            position: relative;
+            z-index: 2;
+            background: rgba(255, 255, 255, 0.07);
+            padding: 45px 30px;
+            border-radius: 28px;
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5), 
+                        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            width: 100%;
+            max-width: 380px;
+        }
+
+        /* Animación del Logotipo */
+        .logo-placeholder {
+            width: 150px;
+            height: 150px;
+            margin: 0 auto 25px auto;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: pulse 3s infinite ease-in-out;
+        }
+
+        .logo-placeholder img {
+            width: 100%;
+            height: 100%;
             border-radius: 50%;
             object-fit: cover;
-            border: 3px solid #ff0055; /* Borde color neón estilo TikTok */
-            box-shadow: 0 0 20px rgba(255, 0, 85, 0.5);
-            margin-bottom: 20px;
+            border: 4px solid rgba(255, 255, 255, 0.8);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); filter: drop-shadow(0 0 10px rgba(44, 83, 100, 0.6)); }
+            50% { transform: scale(1.04); filter: drop-shadow(0 0 25px rgba(0, 212, 255, 0.8)); }
+            100% { transform: scale(1); filter: drop-shadow(0 0 10px rgba(44, 83, 100, 0.6)); }
         }
 
         h1 {
-            font-size: 1.8rem;
-            margin: 0 0 5px 0;
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 6px;
             letter-spacing: 0.5px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
         }
 
-        /* Tu Frecuencia de Transmisión */
-        .info-frecuencia {
-            font-size: 1.1rem;
-            color: #00f2fe; /* Color cyan destacado */
-            font-weight: bold;
+        .subtitle {
+            font-size: 13px;
+            color: #a5d6a7; /* Color verde claro pastel muy moderno para destacar la ubicación */
+            margin-bottom: 35px;
             text-transform: uppercase;
-            margin-bottom: 5px;
-            letter-spacing: 1px;
+            letter-spacing: 2px;
+            font-weight: 600;
         }
 
-        .subtitulo {
-            font-size: 0.9rem;
-            color: #aaa;
-            margin-top: 0;
-            margin-bottom: 30px;
-        }
-
-        /* Caja contenedora del reproductor de audio */
-        .caja-audio {
-            background-color: #09090d;
-            border-radius: 15px;
-            padding: 15px;
-            border: 1px solid #1f1f2e;
-        }
-
-        /* Reproductor nativo de HTML5 adaptado al 100% de ancho */
+        /* Diseño responsivo para el reproductor nativo del sistema */
         audio {
             width: 100%;
             outline: none;
         }
 
-        /* Etiqueta de En Vivo */
-        .badge-vivo {
-            display: inline-block;
-            background-color: #ff0055;
-            color: white;
-            font-size: 0.75rem;
-            font-weight: bold;
-            padding: 4px 10px;
-            border-radius: 5px;
-            margin-bottom: 15px;
-            text-transform: uppercase;
-            animation: parpadeo 1.5s infinite;
+        .footer-text {
+            margin-top: 35px;
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.4);
+            letter-spacing: 1px;
         }
 
-        @keyframes parpadeo {
-            0% { opacity: 0.5; }
-            50% { opacity: 1; }
-            100% { opacity: 0.5; }
+        @media (max-width: 320px) {
+            .player-container { padding: 30px 20px; }
+            .logo-placeholder { width: 120px; height: 120px; }
+            h1 { font-size: 24px; }
+        }
+
+        /* NUEVOS ESTILOS ADICIONADOS PARA LOS METADATOS EN VIVO */
+        .metadata-container {
+            margin-top: -15px;
+            margin-bottom: 25px;
+            background: rgba(0, 0, 0, 0.2);
+            padding: 12px;
+            border-radius: 14px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .metadata-label {
+            font-size: 10px;
+            text-transform: uppercase;
+            color: #00d4ff;
+            letter-spacing: 1.5px;
+            margin-bottom: 4px;
+            font-weight: bold;
+        }
+        #now-playing {
+            font-size: 14px;
+            font-weight: 500;
+            color: #ffffff;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
     </style>
 </head>
 <body>
 
-    <div class="tarjeta-radio">
-        
-        <!-- ESTADO EN VIVO -->
-        <span class="badge-vivo">● EN VIVO DESDE TIKTOK</span>
-
-        <!-- TU LOGO (Pon aquí la dirección de tu imagen) -->
-        <img src="logo.png" alt="Radio Maxi Logo" class="logo-estacion">
-
-        <!-- NOMBRE DE LA RADIO -->
-        <h1>Radio Maxi</h1>
-        
-        <!-- TU FRECUENCIA -->
-        <div class="info-frecuencia">Frecuencia Digital</div>
-        <p class="subtitulo">Alimentado por VirtualDJ & BUTT</p>
-
-        <!-- REPRODUCTOR DIRECTO DE AUDIO (Carga al instante) -->
-        <div class="caja-audio">
-            <audio controls>
-                <!-- URL de transmisión directa de tu Zeno.fm -->
-                <source src="https://zeno.fm" type="audio/mpeg">
-                Tu navegador no soporta este reproductor de audio.
-            </audio>
+    <div class="player-container">
+        <!-- Contenedor de tu logotipo enlazado (usa logo.png) -->
+        <div class="logo-placeholder">
+            <img src="turadiocoveroriginaldos.jpg" alt="Logo TURADIO">
         </div>
+        
+        <h1>TURADIO</h1>
+        <div class="subtitle">Caracas · Venezuela</div>
+        
+        <!-- NUEVO CONTENEDOR VISUAL ADICIONADO PARA MOSTRAR LA CANCIÓN -->
+        <div class="metadata-container">
+            <div class="metadata-label">🎵 Sonando ahora</div>
+            <div id="now-playing">Sintonizando señal...</div>
+        </div>
+        
+        <!-- Tu señal directa de Zeno Media -->
+        <audio controls autoplay>
+            <source src="https://stream.zeno.fm/kns3mkxb6ehvv" type="audio/mpeg">
+            Tu dispositivo no soporta este reproductor de audio.
+        </audio>
 
+        <div class="footer-text">Música sin fronteras</div>
     </div>
 
+    <!-- NUEVA RUTINA JAVASCRIPT ADICIONADA PARA EXTRAER DATOS EN TIEMPO REAL -->
+    <script>
+        function conectarMetadatos() {
+            // Se extrae el Mountpoint 'kns3mkxb6ehvv' detectado de tu señal directa de Zeno.fm
+            const apiLink = 'https://zeno.fm';
+            const campoTexto = document.getElementById('now-playing');
+            
+            try {
+                const eventSource = new EventSource(apiLink);
+                
+                eventSource.onmessage = function(event) {
+                    const data = JSON.parse(event.data);
+                    if (data && data.streamTitle) {
+                        campoTexto.innerText = data.streamTitle;
+                    } else {
+                        campoTexto.innerText = "TURADIO - En Vivo";
+                    }
+                };
+
+                eventSource.onerror = function() {
+                    console.log("Reconectando a los metadatos de Zeno...");
+                    eventSource.close();
+                    setTimeout(conectarMetadatos, 5000); // Intenta reconectar en 5 segundos si falla
+                };
+            } catch (error) {
+                console.error("Error en la conexión de metadatos:", error);
+                campoTexto.innerText = "TURADIO - En Vivo";
+            }
+        }
+
+        // Ejecutar la rutina al cargar la página
+        document.addEventListener("DOMContentLoaded", conectarMetadatos);
+    </script>
 </body>
 </html>
