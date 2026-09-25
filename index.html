@@ -211,8 +211,10 @@
 </head>
 <body>
 
-    <!-- REPRODUCTOR SILENCIOSO INTEGRADO DE FORMA INVISIBLE -->
-    <audio id="radio-stream" preload="none"></audio>
+    <!-- REPRODUCTOR CON LA URL FIJA PARA EVITAR BLOQUEOS DE NAVEGADOR -->
+    <audio id="radio-stream" preload="none" crossorigin="anonymous">
+        <source src="https://zeno.fm" type="audio/mpeg">
+    </audio>
 
     <div class="player-container">
         <!-- Contenedor de tu logotipo enlazado -->
@@ -242,33 +244,33 @@
         <div class="footer-text">Música sin fronteras</div>
     </div>
 
-    <!-- SCRIPT CORREGIDO Y OPTIMIZADO PARA EVITAR TRUNCAMIENTOS -->
+    <!-- SCRIPT ULTRACOMPACTO PARA EVITAR CORTES DE LONGITUD -->
     <script>
-        const m = 'kns3mkxb6ehvv',
-              txt = document.getElementById('now-playing'),
-              aud = document.getElementById('radio-stream'),
-              btn = document.getElementById('btn-control-play'),
-              iPl = document.getElementById('icon-p'),
-              iPa = document.getElementById('icon-s');
+        const mount = 'kns3mkxb6ehvv';
+        const txtNode = document.getElementById('now-playing');
+        const p = document.getElementById('radio-stream');
+        const btn = document.getElementById('btn-control-play');
+        const iP = document.getElementById('icon-p');
+        const iS = document.getElementById('icon-s');
 
         btn.addEventListener('click', () => {
-            if (aud.paused) {
-                aud.src = `https://zeno.fm{m}?t=${Date.now()}`;
-                aud.play().then(() => {
-                    iPl.style.display = 'none'; iPa.style.display = 'flex';
+            if (p.paused) {
+                p.load(); // Fuerza al navegador a leer la URL fija sin bloqueos
+                p.play().then(() => {
+                    iP.style.display = 'none'; iS.style.display = 'flex';
                 }).catch(e => console.error(e));
             } else {
-                aud.pause(); aud.src = '';
-                iPl.style.display = 'block'; iPa.style.display = 'none';
+                p.pause();
+                iP.style.display = 'block'; iS.style.display = 'none';
             }
         });
 
         function updateMeta() {
-            fetch(`https://zeno.fm{m}`)
+            fetch(`https://zeno.fm{mount}`)
                 .then(r => r.json())
                 .then(res => {
                     let s = (res && res.data) ? res.data.streamTitle : (res ? res.streamTitle : '');
-                    if (s) txt.innerText = s;
+                    if (s) txtNode.innerText = s;
                 }).catch(() => {});
         }
 
