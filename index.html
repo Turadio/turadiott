@@ -11,8 +11,16 @@
             width: 100%;
             height: 100%;
             overflow: hidden;
-            background: transparent;
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        /* === FONDO CON LA IMAGEN pngegg.png === */
+        body {
+            background-image: url('pngegg.png');
+            background-size: cover;        /* Cubre toda la pantalla */
+            background-position: center;   /* Centrada */
+            background-repeat: no-repeat;  /* Sin repetición */
+            background-color: #0f2027;     /* Color de respaldo si la imagen no carga */
         }
 
         .wrapper {
@@ -62,7 +70,6 @@
             height: 34px;
             outline: none;
             border-radius: 17px;
-            /* Filtro sutil para que combine con el estilo oscuro */
             filter: invert(1) hue-rotate(180deg) brightness(0.9) contrast(1.1);
             opacity: 0.95;
         }
@@ -94,7 +101,7 @@
         .song-artist {
             font-size: 15px;
             font-weight: 600;
-            color: #7CFFB2; /* Verde más vivo y legible que el anterior */
+            color: #7CFFB2;
             word-break: break-word;
             text-shadow: 0 2px 4px rgba(0, 0, 0, 0.9);
             letter-spacing: 0.3px;
@@ -117,7 +124,7 @@
             </audio>
         </div>
 
-        <!-- Título y artista con fondo para legibilidad -->
+        <!-- Título y artista -->
         <div class="info">
             <div class="song-title" id="song-title">Cargando...</div>
             <div class="song-artist" id="song-artist"></div>
@@ -137,19 +144,16 @@
 
             let lastSearchedQuery = '';
 
-            // --- Forzar reproducción automática (algunos navegadores lo bloquean) ---
             function tryPlay() {
                 const promise = playerEl.play();
                 if (promise !== undefined) {
                     promise.catch(() => {
-                        // Si el navegador bloquea el autoplay, lo intentamos al primer clic
                         document.body.addEventListener('click', () => playerEl.play(), { once: true });
                     });
                 }
             }
             window.addEventListener('load', tryPlay);
 
-            // --- Buscar carátula en iTunes ---
             async function fetchAlbumArt(artist, title) {
                 const query = `${artist} ${title}`.trim();
                 if (query === lastSearchedQuery) return;
@@ -186,7 +190,6 @@
                 };
             }
 
-            // --- Conexión SSE con Zeno ---
             if (typeof EventSource === 'undefined') {
                 titleEl.textContent = 'TURADIO';
                 artistEl.textContent = 'Música sin fronteras';
