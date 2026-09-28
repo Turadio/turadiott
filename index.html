@@ -112,7 +112,7 @@
         </div>
 
         <div class="audio-container">
-            <audio id="player" controls autoplay muted loop>
+            <audio id="player" controls autoplay loop preload="auto">
                 <source src="https://sapircast.caster.fm:11467/9pB8J" type="audio/mpeg">
                 Tu dispositivo no soporta este reproductor.
             </audio>
@@ -124,27 +124,34 @@
         </div>
     </div>
 
-    <!-- Aviso visual para activar el sonido (solo aparece hasta el primer clic) -->
-    <div id="unmute-notice" style="
-        position: fixed;
-        inset: 0;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        background: rgba(0, 0, 0, 0.82);
-        color: #fff;
-        font-size: 22px;
-        font-weight: 700;
-        text-align: center;
-        cursor: pointer;
-        z-index: 9999;
-        padding: 20px;
-        letter-spacing: 1px;
-        backdrop-filter: blur(6px);
-        -webkit-backdrop-filter: blur(6px);
-        gap: 20px;
-    ">
+    <!-- Aviso para activar el sonido. El clic funciona directamente aquí, sin depender del script. -->
+    <div id="unmute-notice"
+         onclick="
+            var p = document.getElementById('player');
+            p.muted = false;
+            p.volume = 1;
+            p.play();
+            this.style.display = 'none';
+         "
+         style="
+            position: fixed;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0, 0, 0, 0.85);
+            color: #fff;
+            font-size: 22px;
+            font-weight: 700;
+            text-align: center;
+            cursor: pointer;
+            z-index: 9999;
+            padding: 20px;
+            gap: 20px;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            letter-spacing: 1px;
+         ">
         <div style="font-size: 64px;">🔊</div>
         <div>Toca la pantalla para activar el sonido</div>
         <div style="font-size: 14px; opacity: 0.7; font-weight: 400;">(solo hace falta una vez)</div>
@@ -177,6 +184,18 @@
 
             let lastStreamTitle = '';
 
+            // --- Diagnóstico del reproductor de audio ---
+            playerEl.addEventListener('error', () => {
+                const err = playerEl.error;
+                if (err) log(`❌ Error audio: code=${err.code} - ${err.message || 'sin mensaje'}`);
+            });
+            playerEl.addEventListener('playing', () => log('🎵 Audio reproduciéndose'));
+            playerEl.addEventListener('waiting', () => log('⏳ Audio esperando...'));
+            playerEl.addEventListener('stalled', () => log('⚠️ Audio estancado'));
+            playerEl.addEventListener('loadedmetadata', () => log('📻 Metadatos cargados'));
+            playerEl.addEventListener('canplay', () => log('✅ Audio listo'));
+            playerEl.addEventListener('volumechange', () => log(`🔉 Volumen: ${playerEl.volume}, muted: ${playerEl.muted}`));
+
             // --- Limpiar consulta para iTunes ---
             function cleanQuery(artist, title) {
                 let cleanTitle = title;
@@ -199,7 +218,7 @@
                 try { localStorage.setItem(CACHE_PREFIX + query, url); } catch (e) {}
             }
 
-            // === AUTOPLAY CON SOLUCIÓN AL BLOQUEO DEL NAVEGADOR ===
+            // --- Intentar reproducir silenciado al cargar (permitido por navegadores) ---
             function tryPlay() {
                 playerEl.muted = true;
                 const promise = playerEl.play();
@@ -211,21 +230,7 @@
                     });
                 }
             }
-
-            function unmuteAudio() {
-                playerEl.muted = false;
-                playerEl.volume = 1.0;
-                playerEl.play().catch(() => {});
-                if (unmuteNotice) {
-                    unmuteNotice.style.display = 'none';
-                }
-                log('🔊 Sonido activado por el usuario');
-            }
-
             window.addEventListener('load', tryPlay);
-            document.addEventListener('click', unmuteAudio, { once: true });
-            document.addEventListener('touchstart', unmuteAudio, { once: true });
-            document.addEventListener('keydown', unmuteAudio, { once: true });
 
             // --- Buscar carátula en iTunes ---
             async function fetchAlbumArt(artist, title) {
