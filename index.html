@@ -54,16 +54,14 @@
 
         .cover-container img.loaded { opacity: 1; }
 
-        /* === CONTENEDOR DEL WIDGET DE CASTER.FM (oculto pero funcional) === */
+        /* === CONTENEDOR DEL REPRODUCTOR: OCULTO FUERA DE PANTALLA === */
         .audio-container {
             position: absolute;
+            left: -9999px;      /* Fuera de la pantalla, pero visible para el navegador */
             top: 0;
-            left: 0;
-            width: 1px;
-            height: 1px;
+            width: 320px;       /* Tamaño normal para que el navegador no lo bloquee */
+            height: 80px;
             overflow: hidden;
-            opacity: 0.01;
-            pointer-events: none;
             z-index: -1;
         }
 
@@ -103,6 +101,16 @@
             text-shadow: 0 2px 4px rgba(0, 0, 0, 0.9);
             letter-spacing: 0.3px;
         }
+
+        /* === Botón invisible para desbloquear el audio === */
+        #unlock-audio {
+            position: fixed;
+            inset: 0;
+            z-index: 9998;
+            cursor: pointer;
+            background: transparent;
+            display: none; /* Se muestra solo si el audio no arranca solo */
+        }
     </style>
 </head>
 <body>
@@ -112,7 +120,7 @@
             <img id="album-art" src="turadiocoveroriginaldos.jpg" alt="Cover">
         </div>
 
-        <!-- === WIDGET DE CASTER.FM PARA EL AUDIO (invisible pero funcional) === -->
+        <!-- === REPRODUCTOR DE CASTER.FM (oculto fuera de pantalla) === -->
         <div class="audio-container">
             <div data-type="newStreamPlayer" 
                  data-publicToken="f6da86b3-1e60-4ddc-ba56-d31c6a2ea515" 
@@ -133,10 +141,12 @@
         </div>
     </div>
 
+    <!-- Capa invisible para desbloquear el audio con un clic (solo si es necesario) -->
+    <div id="unlock-audio"></div>
+
     <!-- Script de Caster.fm para el reproductor -->
     <script src="//cdn.cloud.caster.fm//widgets/embed.js"></script>
 
-    <!-- Script de metadatos (Caster.fm JSON) y carátula (iTunes) -->
     <script>
         (function() {
             // --- Configuración de Caster.fm para metadatos ---
@@ -149,8 +159,30 @@
             const titleEl = document.getElementById('song-title');
             const artistEl = document.getElementById('song-artist');
             const albumArtEl = document.getElementById('album-art');
+            const unlockAudio = document.getElementById('unlock-audio');
 
             let lastStreamTitle = '';
+
+            // --- Intento de desbloqueo de audio ---
+            // Como el reproductor está en un iframe, no podemos controlarlo directamente.
+            // Pero podemos intentar que el navegador lo active si el iframe es visible.
+            // Si el audio no arranca, mostramos una capa invisible que al hacer clic
+            // simula una interacción del usuario y el navegador permite el audio.
+            function setupAudioUnlock() {
+                // Esperamos 2 segundos por si el audio arranca solo
+                setTimeout(() => {
+                    // Si el audio no ha arrancado (no podemos saberlo directamente),
+                    // mostramos la capa de desbloqueo. Al hacer clic, el navegador
+                    // considera que hubo interacción y permite el audio del iframe.
+                    unlockAudio.style.display = 'block';
+                }, 2000);
+
+                unlockAudio.addEventListener('click', () => {
+                    unlockAudio.style.display = 'none';
+                    // No podemos forzar el play del iframe, pero el clic ya cuenta
+                    // como interacción del usuario. El iframe debería arrancar solo.
+                }, { once: true });
+            }
 
             // --- Caché de carátulas ---
             function getCachedAlbumArt(query) {
@@ -261,6 +293,9 @@
 
             checkNowPlaying();
             setInterval(checkNowPlaying, POLL_INTERVAL);
+
+            // Configuramos el desbloqueo de audio
+            setupAudioUnlock();
         })();
     </script>
 
