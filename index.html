@@ -3,7 +3,6 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="referrer" content="no-referrer-when-downgrade">
     <title>TURADIO - Now Playing</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -55,31 +54,21 @@
 
         .cover-container img.loaded { opacity: 1; }
 
-        /* === REPRODUCTOR DE CASTER.FM: pequeño, fijo en la esquina inferior derecha === */
         .audio-container {
-            position: fixed;
-            bottom: 12px;
-            right: 12px;
-            width: 280px;
-            height: 80px;
-            z-index: 100;
-            border-radius: 12px;
-            overflow: hidden;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
-            transform: scale(0.5);
-            transform-origin: bottom right;
-            transition: transform 0.3s ease, opacity 0.3s ease;
-            opacity: 0.85;
+            width: 90%;
+            max-width: 320px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
 
-        .audio-container:hover {
-            transform: scale(1);
-            opacity: 1;
-        }
-
-        .cstrEmbed {
+        audio {
             width: 100%;
-            height: 100%;
+            height: 34px;
+            outline: none;
+            border-radius: 17px;
+            filter: invert(1) hue-rotate(180deg) brightness(0.9) contrast(1.1);
+            opacity: 0.95;
         }
 
         .info {
@@ -122,45 +111,46 @@
             <img id="album-art" src="turadiocoveroriginaldos.jpg" alt="Cover">
         </div>
 
+        <div class="audio-container">
+            <audio id="player" controls autoplay>
+                <source src="https://stream.zeno.fm/kns3mkxb6ehvv" type="audio/mpeg">
+                Tu dispositivo no soporta este reproductor.
+            </audio>
+        </div>
+
         <div class="info">
             <div class="song-title" id="song-title">Cargando...</div>
             <div class="song-artist" id="song-artist"></div>
         </div>
     </div>
 
-    <!-- === REPRODUCTOR DE CASTER.FM (con Channel ID correcto) === -->
-    <div class="audio-container">
-        <div class="cstrEmbed" 
-             data-type="newStreamPlayer" 
-             data-publicToken="f6da86b3-1e60-4ddc-ba56-d31c6a2ea515"
-             data-theme="light" 
-             data-color="e81e4d" 
-             data-channelId="a2daa187-6d56-4fa3-9fae-5f9184394693" 
-             data-rendered="false">
-            <a href="https://www.caster.fm">Shoutcast Hosting</a> 
-            <a href="https://www.caster.fm">Stream Hosting</a> 
-            <a href="https://www.caster.fm">Radio Server Hosting</a>
-        </div>
-    </div>
-
-    <!-- Script de Caster.fm para el reproductor -->
-    <script src="//cdn.cloud.caster.fm/widgets/embed.js"></script>
-
-    <!-- Script de metadatos y carátula -->
     <script>
         (function() {
-            const CASTER_JSON_URL = 'https://sapircast.caster.fm:11467/status-json.xsl';
-            const MOUNT_POINT = '/9pB8J';
+            // --- Configuración ---
+            const MOUNT = 'kns3mkxb6ehvv';
+            const ZENO_API_URL = 'https://api.zeno.fm/mounts/metadata/subscribe/' + MOUNT;
             const DEFAULT_ALBUM_ART = 'turadiocoveroriginaldos.jpg';
             const CACHE_PREFIX = 'turadio_art_';
-            const POLL_INTERVAL = 3000;
 
             const titleEl = document.getElementById('song-title');
             const artistEl = document.getElementById('song-artist');
             const albumArtEl = document.getElementById('album-art');
+            const playerEl = document.getElementById('player');
 
-            let lastStreamTitle = '';
+            let lastSearchedQuery = '';
 
+            // --- Reproducción automática con fallback de clic silencioso ---
+            function tryPlay() {
+                const promise = playerEl.play();
+                if (promise !== undefined) {
+                    promise.catch(() => {
+                        document.body.addEventListener('click', () => playerEl.play(), { once: true });
+                    });
+                }
+            }
+            window.addEventListener('load', tryPlay);
+
+            // --- Caché de carátulas con localStorage ---
             function getCachedAlbumArt(query) {
                 try { return localStorage.getItem(CACHE_PREFIX + query); } catch (e) { return null; }
             }
@@ -168,29 +158,39 @@
                 try { localStorage.setItem(CACHE_PREFIX + query, url); } catch (e) {}
             }
 
+            // --- Limpiar consulta para iTunes (mejora aciertos y velocidad) ---
             function cleanQuery(artist, title) {
                 let cleanTitle = title;
+                // Quitar paréntesis y corchetes con su contenido
                 cleanTitle = cleanTitle.replace(/\s*[\(\[].*?[\)\]]/g, '');
+                // Quitar palabras comunes que ensucian la búsqueda
                 const stopWords = ['feat\\.', 'ft\\.', 'featuring', 'remix', 'edit', 'version', 'radio'];
                 stopWords.forEach(word => {
                     const regex = new RegExp(`\\b${word}\\b`, 'gi');
                     cleanTitle = cleanTitle.replace(regex, '');
                 });
+                // Limpiar espacios y guiones sueltos
                 cleanTitle = cleanTitle.replace(/\s+/g, ' ').trim();
                 cleanTitle = cleanTitle.replace(/^[\s\-–—]+|[\s\-–—]+$/g, '');
                 return `${artist} ${cleanTitle}`.trim();
             }
 
+            // --- Buscar carátula en iTunes (con caché) ---
             async function fetchAlbumArt(artist, title) {
                 const query = cleanQuery(artist, title);
-                if (query === lastStreamTitle) return;
+                if (query === lastSearchedQuery) return;
+                lastSearchedQuery = query;
 
+                // 1. Caché primero
                 const cachedUrl = getCachedAlbumArt(query);
                 if (cachedUrl) {
+                    console.log(`⚡ Caché: "${query}"`);
                     updateAlbumArt(cachedUrl);
                     return;
                 }
 
+                // 2. Si no está, buscar en iTunes
+                console.log(`🔍 iTunes: "${query}"`);
                 try {
                     const url = `https://itunes.apple.com/search?term=${encodeURIComponent(query)}&entity=song&limit=1`;
                     const response = await fetch(url);
@@ -210,7 +210,9 @@
                 }
             }
 
+            // --- Actualizar imagen con fundido ---
             function updateAlbumArt(src) {
+                // Si ya es la misma imagen, no hacemos nada
                 if (albumArtEl.src === src && albumArtEl.classList.contains('loaded')) return;
                 const newImg = new Image();
                 newImg.src = src;
@@ -224,45 +226,41 @@
                 };
             }
 
-            async function checkNowPlaying() {
-                try {
-                    const res = await fetch(CASTER_JSON_URL + '?t=' + Date.now());
-                    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-                    const data = await res.json();
-
-                    let source = data?.icestats?.source;
-                    if (Array.isArray(source)) {
-                        source = source.find(s => s.listenurl && s.listenurl.includes(MOUNT_POINT)) || source[0];
-                    }
-                    if (!source) return;
-
-                    let streamTitle = source.x_icy_title || source.title || '';
-                    streamTitle = streamTitle.replace(/^\d{1,2}:\d{2}\s*:\s*/, '').trim();
-
-                    if (!streamTitle) return;
-                    if (streamTitle === lastStreamTitle) return;
-                    lastStreamTitle = streamTitle;
-
-                    console.log(`📡 Nueva canción: "${streamTitle}"`);
-
-                    const partes = streamTitle.split(' - ');
-                    if (partes.length >= 2) {
-                        const artista = partes[0].trim();
-                        const titulo = partes.slice(1).join(' - ').trim();
-                        artistEl.textContent = artista;
-                        titleEl.textContent = titulo;
-                        fetchAlbumArt(artista, titulo);
-                    } else {
-                        titleEl.textContent = streamTitle;
-                        artistEl.textContent = 'TURADIO';
-                    }
-                } catch (e) {
-                    // Silencioso
-                }
+            // --- Conexión SSE con Zeno ---
+            if (typeof EventSource === 'undefined') {
+                titleEl.textContent = 'TURADIO';
+                artistEl.textContent = 'Música sin fronteras';
+                return;
             }
 
-            checkNowPlaying();
-            setInterval(checkNowPlaying, POLL_INTERVAL);
+            const eventSource = new EventSource(ZENO_API_URL);
+
+            eventSource.onmessage = function(event) {
+                try {
+                    const data = JSON.parse(event.data);
+                    const streamTitle = data.streamTitle || data.title || '';
+
+                    if (streamTitle && streamTitle.trim() !== '') {
+                        const partes = streamTitle.split(' - ');
+                        if (partes.length >= 2) {
+                            const artista = partes[0].trim();
+                            const titulo = partes.slice(1).join(' - ').trim();
+                            artistEl.textContent = artista;
+                            titleEl.textContent = titulo;
+                            fetchAlbumArt(artista, titulo);
+                        } else {
+                            titleEl.textContent = streamTitle.trim();
+                            artistEl.textContent = 'TURADIO';
+                        }
+                    }
+                } catch (e) {
+                    console.warn('Error metadatos:', e);
+                }
+            };
+
+            eventSource.onerror = function() {
+                // Silencioso. EventSource reintenta automáticamente.
+            };
         })();
     </script>
 
