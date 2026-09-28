@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="referrer" content="no-referrer-when-downgrade">
     <title>TURADIO - Now Playing</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -60,13 +61,12 @@
             bottom: 12px;
             right: 12px;
             width: 280px;
-            height: 60px;
+            height: 80px;
             z-index: 100;
             border-radius: 12px;
             overflow: hidden;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
-            /* Reducimos visualmente sin que el navegador lo considere "oculto" */
-            transform: scale(0.55);
+            transform: scale(0.5);
             transform-origin: bottom right;
             transition: transform 0.3s ease, opacity 0.3s ease;
             opacity: 0.85;
@@ -128,15 +128,15 @@
         </div>
     </div>
 
-    <!-- === REPRODUCTOR DE CASTER.FM (visible, pero pequeño en la esquina) === -->
+    <!-- === REPRODUCTOR DE CASTER.FM (con Channel ID correcto) === -->
     <div class="audio-container">
-        <div data-type="newStreamPlayer" 
-             data-publicToken="f6da86b3-1e60-4ddc-ba56-d31c6a2ea515" 
+        <div class="cstrEmbed" 
+             data-type="newStreamPlayer" 
+             data-publicToken="f6da86b3-1e60-4ddc-ba56-d31c6a2ea515"
              data-theme="light" 
              data-color="e81e4d" 
-             data-channelId="" 
-             data-rendered="false" 
-             class="cstrEmbed">
+             data-channelId="a2daa187-6d56-4fa3-9fae-5f9184394693" 
+             data-rendered="false">
             <a href="https://www.caster.fm">Shoutcast Hosting</a> 
             <a href="https://www.caster.fm">Stream Hosting</a> 
             <a href="https://www.caster.fm">Radio Server Hosting</a>
@@ -144,7 +144,7 @@
     </div>
 
     <!-- Script de Caster.fm para el reproductor -->
-    <script src="//cdn.cloud.caster.fm//widgets/embed.js"></script>
+    <script src="//cdn.cloud.caster.fm/widgets/embed.js"></script>
 
     <!-- Script de metadatos y carátula -->
     <script>
