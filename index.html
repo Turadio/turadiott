@@ -173,16 +173,37 @@
                 try { localStorage.setItem(CACHE_PREFIX + query, url); } catch (e) {}
             }
 
-            // --- Autoplay ---
-            function tryPlay() {
-                const promise = playerEl.play();
-                if (promise !== undefined) {
-                    promise.catch(() => {
-                        document.body.addEventListener('click', () => playerEl.play(), { once: true });
-                    });
-                }
-            }
-            window.addEventListener('load', tryPlay);
+           // --- Autoplay con solución al bloqueo del navegador ---
+const unmuteNotice = document.getElementById('unmute-notice');
+
+function tryPlay() {
+    // 1. Intentamos reproducir silenciado (esto SÍ lo permite el navegador)
+    playerEl.muted = true;
+    const promise = playerEl.play();
+    if (promise !== undefined) {
+        promise.then(() => {
+            log('▶️ Reproduciendo en modo silenciado');
+        }).catch((err) => {
+            log(`⚠️ Autoplay bloqueado: ${err.message}`);
+        });
+    }
+}
+
+// 2. Al primer clic o toque en la página, activamos el sonido
+function unmuteAudio() {
+    playerEl.muted = false;
+    playerEl.volume = 1.0;
+    playerEl.play().catch(() => {});
+    if (unmuteNotice) {
+        unmuteNotice.style.display = 'none';
+    }
+    log('🔊 Sonido activado por el usuario');
+}
+
+window.addEventListener('load', tryPlay);
+document.addEventListener('click', unmuteAudio, { once: true });
+document.addEventListener('touchstart', unmuteAudio, { once: true });
+document.addEventListener('keydown', unmuteAudio, { once: true });
 
             // --- Buscar carátula en iTunes ---
             async function fetchAlbumArt(artist, title) {
