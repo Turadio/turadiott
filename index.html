@@ -14,13 +14,13 @@
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
         }
 
-        /* === FONDO CON LA IMAGEN pngegg.png === */
+        /* === FONDO CON LA IMAGEN === */
         body {
             background-image: url('1787007135377.png');
-            background-size: cover;        /* Cubre toda la pantalla */
-            background-position: center;   /* Centrada */
-            background-repeat: no-repeat;  /* Sin repetición */
-            background-color: #0f2027;     /* Color de respaldo si la imagen no carga */
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-color: #0f2027;
         }
 
         .wrapper {
@@ -34,7 +34,6 @@
             gap: 12px;
         }
 
-        /* Carátula cuadrada */
         .cover-container {
             width: 68%;
             max-width: 320px;
@@ -56,7 +55,6 @@
 
         .cover-container img.loaded { opacity: 1; }
 
-        /* === Reproductor de audio compacto === */
         .audio-container {
             width: 90%;
             max-width: 320px;
@@ -74,7 +72,6 @@
             opacity: 0.95;
         }
 
-        /* === Texto con fondo tipo píldora para máxima legibilidad === */
         .info {
             text-align: center;
             width: 92%;
@@ -111,12 +108,10 @@
 <body>
 
     <div class="wrapper">
-        <!-- Carátula -->
         <div class="cover-container">
             <img id="album-art" src="turadiocoveroriginaldos.jpg" alt="Cover">
         </div>
 
-        <!-- Reproductor compacto -->
         <div class="audio-container">
             <audio id="player" controls autoplay>
                 <source src="https://stream.zeno.fm/kns3mkxb6ehvv" type="audio/mpeg">
@@ -124,7 +119,6 @@
             </audio>
         </div>
 
-        <!-- Título y artista -->
         <div class="info">
             <div class="song-title" id="song-title">Cargando...</div>
             <div class="song-artist" id="song-artist"></div>
@@ -133,17 +127,63 @@
 
     <script>
         (function() {
+            // --- Configuración ---
             const MOUNT = 'kns3mkxb6ehvv';
             const ZENO_API_URL = 'https://api.zeno.fm/mounts/metadata/subscribe/' + MOUNT;
             const DEFAULT_ALBUM_ART = 'turadiocoveroriginaldos.jpg';
+            const CACHE_PREFIX = 'turadio_art_'; // Prefijo para las claves de la caché
 
+            // --- Referencias a elementos del DOM ---
             const titleEl = document.getElementById('song-title');
             const artistEl = document.getElementById('song-artist');
             const albumArtEl = document.getElementById('album-art');
             const playerEl = document.getElementById('player');
 
+            // --- Control de búsquedas duplicadas ---
             let lastSearchedQuery = '';
 
+            // === NUEVO: Función para limpiar la consulta de búsqueda ===
+            // Elimina paréntesis, corchetes, feat., remix, etc.
+            function cleanQuery(artist, title) {
+                let cleanTitle = title;
+
+                // 1. Quitar todo lo que esté entre paréntesis ( ) o corchetes [ ]
+                cleanTitle = cleanTitle.replace(/\s*[\(\[].*?[\)\]]/g, '');
+
+                // 2. Quitar palabras comunes que ensucian la búsqueda
+                const stopWords = ['feat\\.', 'ft\\.', 'featuring', 'remix', 'edit', 'version', 'radio'];
+                stopWords.forEach(word => {
+                    const regex = new RegExp(`\\b${word}\\b`, 'gi');
+                    cleanTitle = cleanTitle.replace(regex, '');
+                });
+
+                // 3. Quitar espacios dobles y limpiar extremos
+                cleanTitle = cleanTitle.replace(/\s+/g, ' ').trim();
+
+                // 4. Quitar guiones sueltos al inicio o final
+                cleanTitle = cleanTitle.replace(/^[\s\-–—]+|[\s\-–—]+$/g, '');
+
+                return `${artist} ${cleanTitle}`.trim();
+            }
+
+            // === NUEVO: Funciones de caché con sessionStorage ===
+            function getCachedAlbumArt(query) {
+                try {
+                    return sessionStorage.getItem(CACHE_PREFIX + query);
+                } catch (e) {
+                    return null; // Si sessionStorage está deshabilitado, no fallamos
+                }
+            }
+
+            function setCachedAlbumArt(query, url) {
+                try {
+                    sessionStorage.setItem(CACHE_PREFIX + query, url);
+                } catch (e) {
+                    // Si la caché está llena o deshabilitada, ignoramos silenciosamente
+                }
+            }
+
+            // --- Reproducción automática ---
             function tryPlay() {
                 const promise = playerEl.play();
                 if (promise !== undefined) {
@@ -154,11 +194,25 @@
             }
             window.addEventListener('load', tryPlay);
 
+            // === FUNCIÓN OPTIMIZADA: Buscar carátula en iTunes ===
             async function fetchAlbumArt(artist, title) {
-                const query = `${artist} ${title}`.trim();
+                // 1. Limpiamos la consulta
+                const query = cleanQuery(artist, title);
+
+                // 2. Evitamos búsquedas duplicadas
                 if (query === lastSearchedQuery) return;
                 lastSearchedQuery = query;
 
+                // 3. Comprobamos la caché PRIMERO
+                const cachedUrl = getCachedAlbumArt(query);
+                if (cachedUrl) {
+                    console.log(`⚡ Caché: "${query}"`);
+                    updateAlbumArt(cachedUrl);
+                    return;
+                }
+
+                // 4. Si no está en caché, consultamos iTunes
+                console.log(`🔍 iTunes: "${query}"`);
                 try {
                     const url = `https://itunes.apple.com/search?term=${encodeURIComponent(query)}&entity=song&limit=1`;
                     const response = await fetch(url);
@@ -167,8 +221,13 @@
 
                     if (data.results && data.results.length > 0 && data.results[0].artworkUrl100) {
                         let artworkUrl = data.results[0].artworkUrl100.replace('100x100bb.jpg', '600x600bb.jpg');
+                        
+                        // Guardamos en caché para futuras reproducciones
+                        setCachedAlbumArt(query, artworkUrl);
+                        
                         updateAlbumArt(artworkUrl);
                     } else {
+                        console.log(`⚠️ Sin resultados para: "${query}"`);
                         updateAlbumArt(DEFAULT_ALBUM_ART);
                     }
                 } catch (error) {
@@ -177,7 +236,11 @@
                 }
             }
 
+            // --- Actualizar imagen con fundido suave ---
             function updateAlbumArt(src) {
+                // Si ya es la misma imagen, no hacemos nada
+                if (albumArtEl.src === src && albumArtEl.classList.contains('loaded')) return;
+
                 const newImg = new Image();
                 newImg.src = src;
                 newImg.onload = () => {
@@ -190,6 +253,7 @@
                 };
             }
 
+            // --- Conexión SSE con Zeno ---
             if (typeof EventSource === 'undefined') {
                 titleEl.textContent = 'TURADIO';
                 artistEl.textContent = 'Música sin fronteras';
