@@ -54,15 +54,27 @@
 
         .cover-container img.loaded { opacity: 1; }
 
-        /* === CONTENEDOR DEL REPRODUCTOR: OCULTO FUERA DE PANTALLA === */
+        /* === REPRODUCTOR DE CASTER.FM: pequeño, fijo en la esquina inferior derecha === */
         .audio-container {
-            position: absolute;
-            left: -9999px;      /* Fuera de la pantalla, pero visible para el navegador */
-            top: 0;
-            width: 320px;       /* Tamaño normal para que el navegador no lo bloquee */
-            height: 80px;
+            position: fixed;
+            bottom: 12px;
+            right: 12px;
+            width: 280px;
+            height: 60px;
+            z-index: 100;
+            border-radius: 12px;
             overflow: hidden;
-            z-index: -1;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+            /* Reducimos visualmente sin que el navegador lo considere "oculto" */
+            transform: scale(0.55);
+            transform-origin: bottom right;
+            transition: transform 0.3s ease, opacity 0.3s ease;
+            opacity: 0.85;
+        }
+
+        .audio-container:hover {
+            transform: scale(1);
+            opacity: 1;
         }
 
         .cstrEmbed {
@@ -101,16 +113,6 @@
             text-shadow: 0 2px 4px rgba(0, 0, 0, 0.9);
             letter-spacing: 0.3px;
         }
-
-        /* === Botón invisible para desbloquear el audio === */
-        #unlock-audio {
-            position: fixed;
-            inset: 0;
-            z-index: 9998;
-            cursor: pointer;
-            background: transparent;
-            display: none; /* Se muestra solo si el audio no arranca solo */
-        }
     </style>
 </head>
 <body>
@@ -120,36 +122,33 @@
             <img id="album-art" src="turadiocoveroriginaldos.jpg" alt="Cover">
         </div>
 
-        <!-- === REPRODUCTOR DE CASTER.FM (oculto fuera de pantalla) === -->
-        <div class="audio-container">
-            <div data-type="newStreamPlayer" 
-                 data-publicToken="f6da86b3-1e60-4ddc-ba56-d31c6a2ea515" 
-                 data-theme="light" 
-                 data-color="e81e4d" 
-                 data-channelId="" 
-                 data-rendered="false" 
-                 class="cstrEmbed">
-                <a href="https://www.caster.fm">Shoutcast Hosting</a> 
-                <a href="https://www.caster.fm">Stream Hosting</a> 
-                <a href="https://www.caster.fm">Radio Server Hosting</a>
-            </div>
-        </div>
-
         <div class="info">
             <div class="song-title" id="song-title">Cargando...</div>
             <div class="song-artist" id="song-artist"></div>
         </div>
     </div>
 
-    <!-- Capa invisible para desbloquear el audio con un clic (solo si es necesario) -->
-    <div id="unlock-audio"></div>
+    <!-- === REPRODUCTOR DE CASTER.FM (visible, pero pequeño en la esquina) === -->
+    <div class="audio-container">
+        <div data-type="newStreamPlayer" 
+             data-publicToken="f6da86b3-1e60-4ddc-ba56-d31c6a2ea515" 
+             data-theme="light" 
+             data-color="e81e4d" 
+             data-channelId="" 
+             data-rendered="false" 
+             class="cstrEmbed">
+            <a href="https://www.caster.fm">Shoutcast Hosting</a> 
+            <a href="https://www.caster.fm">Stream Hosting</a> 
+            <a href="https://www.caster.fm">Radio Server Hosting</a>
+        </div>
+    </div>
 
     <!-- Script de Caster.fm para el reproductor -->
     <script src="//cdn.cloud.caster.fm//widgets/embed.js"></script>
 
+    <!-- Script de metadatos y carátula -->
     <script>
         (function() {
-            // --- Configuración de Caster.fm para metadatos ---
             const CASTER_JSON_URL = 'https://sapircast.caster.fm:11467/status-json.xsl';
             const MOUNT_POINT = '/9pB8J';
             const DEFAULT_ALBUM_ART = 'turadiocoveroriginaldos.jpg';
@@ -159,32 +158,9 @@
             const titleEl = document.getElementById('song-title');
             const artistEl = document.getElementById('song-artist');
             const albumArtEl = document.getElementById('album-art');
-            const unlockAudio = document.getElementById('unlock-audio');
 
             let lastStreamTitle = '';
 
-            // --- Intento de desbloqueo de audio ---
-            // Como el reproductor está en un iframe, no podemos controlarlo directamente.
-            // Pero podemos intentar que el navegador lo active si el iframe es visible.
-            // Si el audio no arranca, mostramos una capa invisible que al hacer clic
-            // simula una interacción del usuario y el navegador permite el audio.
-            function setupAudioUnlock() {
-                // Esperamos 2 segundos por si el audio arranca solo
-                setTimeout(() => {
-                    // Si el audio no ha arrancado (no podemos saberlo directamente),
-                    // mostramos la capa de desbloqueo. Al hacer clic, el navegador
-                    // considera que hubo interacción y permite el audio del iframe.
-                    unlockAudio.style.display = 'block';
-                }, 2000);
-
-                unlockAudio.addEventListener('click', () => {
-                    unlockAudio.style.display = 'none';
-                    // No podemos forzar el play del iframe, pero el clic ya cuenta
-                    // como interacción del usuario. El iframe debería arrancar solo.
-                }, { once: true });
-            }
-
-            // --- Caché de carátulas ---
             function getCachedAlbumArt(query) {
                 try { return localStorage.getItem(CACHE_PREFIX + query); } catch (e) { return null; }
             }
@@ -192,7 +168,6 @@
                 try { localStorage.setItem(CACHE_PREFIX + query, url); } catch (e) {}
             }
 
-            // --- Limpiar consulta para iTunes ---
             function cleanQuery(artist, title) {
                 let cleanTitle = title;
                 cleanTitle = cleanTitle.replace(/\s*[\(\[].*?[\)\]]/g, '');
@@ -206,7 +181,6 @@
                 return `${artist} ${cleanTitle}`.trim();
             }
 
-            // --- Buscar carátula en iTunes ---
             async function fetchAlbumArt(artist, title) {
                 const query = cleanQuery(artist, title);
                 if (query === lastStreamTitle) return;
@@ -236,7 +210,6 @@
                 }
             }
 
-            // --- Actualizar imagen con fundido ---
             function updateAlbumArt(src) {
                 if (albumArtEl.src === src && albumArtEl.classList.contains('loaded')) return;
                 const newImg = new Image();
@@ -251,7 +224,6 @@
                 };
             }
 
-            // === Consulta periódica al JSON de Caster.fm ===
             async function checkNowPlaying() {
                 try {
                     const res = await fetch(CASTER_JSON_URL + '?t=' + Date.now());
@@ -265,8 +237,6 @@
                     if (!source) return;
 
                     let streamTitle = source.x_icy_title || source.title || '';
-
-                    // Limpiar el prefijo de hora "09:05 : "
                     streamTitle = streamTitle.replace(/^\d{1,2}:\d{2}\s*:\s*/, '').trim();
 
                     if (!streamTitle) return;
@@ -293,9 +263,6 @@
 
             checkNowPlaying();
             setInterval(checkNowPlaying, POLL_INTERVAL);
-
-            // Configuramos el desbloqueo de audio
-            setupAudioUnlock();
         })();
     </script>
 
