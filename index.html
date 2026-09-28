@@ -54,20 +54,22 @@
 
         .cover-container img.loaded { opacity: 1; }
 
-        /* === CONTENEDOR DEL WIDGET DE CASTER.FM === */
+        /* === CONTENEDOR DEL WIDGET DE CASTER.FM (oculto pero funcional) === */
         .audio-container {
-            width: 90%;
-            max-width: 320px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 80px;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 1px;
+            height: 1px;
+            overflow: hidden;
+            opacity: 0.01;
+            pointer-events: none;
+            z-index: -1;
         }
 
         .cstrEmbed {
             width: 100%;
-            border-radius: 17px;
-            overflow: hidden;
+            height: 100%;
         }
 
         .info {
@@ -110,7 +112,7 @@
             <img id="album-art" src="turadiocoveroriginaldos.jpg" alt="Cover">
         </div>
 
-        <!-- === WIDGET DE CASTER.FM PARA EL AUDIO (newStreamPlayer) === -->
+        <!-- === WIDGET DE CASTER.FM PARA EL AUDIO (invisible pero funcional) === -->
         <div class="audio-container">
             <div data-type="newStreamPlayer" 
                  data-publicToken="f6da86b3-1e60-4ddc-ba56-d31c6a2ea515" 
