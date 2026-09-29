@@ -48,12 +48,11 @@
         }
 
         .logo-container img {
-            height: 100% !important;
+            height: 130% !important;             /* ← La imagen crece 30% más */
             width: auto !important;
             object-fit: contain;
             display: block;
-            margin: 0 !important;
-            padding: 0 !important;
+            margin: -15% 0;                      /* ← Compensa el crecimiento */
         }
 
         @keyframes logoBreath {
