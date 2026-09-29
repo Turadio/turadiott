@@ -29,14 +29,13 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            padding: 10px;
-            gap: 12px;
+            padding: 5px;
+            gap: 4px;                            /* Espacio mínimo entre elementos */
         }
 
-        /* === LOGO DE TURADIO: GRANDE + ANIMACIÓN DE ZOOM === */
-               /* === LOGO DE TURADIO: altura fija + animación === */
+        /* === LOGO DE TURADIO: grande, animado y sin espacio extra === */
         .logo-container {
-            height: 140px !important;
+            height: 150px !important;            /* Altura fija del logo */
             display: flex;
             justify-content: center;
             align-items: center;
@@ -48,11 +47,12 @@
         }
 
         .logo-container img {
-            height: 130% !important;             /* ← La imagen crece 30% más */
+            height: 100% !important;
             width: auto !important;
             object-fit: contain;
             display: block;
-            margin: -15% 0;                      /* ← Compensa el crecimiento */
+            margin: 0 !important;
+            padding: 0 !important;
         }
 
         @keyframes logoBreath {
@@ -141,7 +141,7 @@
 
         <!-- === LOGO DE TURADIO === -->
         <div class="logo-container">
-            <img src="logoturadio.png" alt="Logo TURADIO">
+            <img src="logoturadiocrop.png" alt="Logo TURADIO">
         </div>
 
         <!-- === CARÁTULA === -->
@@ -166,6 +166,7 @@
 
     <script>
         (function() {
+            // --- Configuración ---
             const MOUNT = 'kns3mkxb6ehvv';
             const ZENO_API_URL = 'https://api.zeno.fm/mounts/metadata/subscribe/' + MOUNT;
             const DEFAULT_ALBUM_ART = 'turadiocoveroriginaldos.jpg';
@@ -178,6 +179,7 @@
 
             let lastSearchedQuery = '';
 
+            // --- Reproducción automática con fallback de clic silencioso ---
             function tryPlay() {
                 const promise = playerEl.play();
                 if (promise !== undefined) {
@@ -188,6 +190,7 @@
             }
             window.addEventListener('load', tryPlay);
 
+            // --- Caché de carátulas con localStorage ---
             function getCachedAlbumArt(query) {
                 try { return localStorage.getItem(CACHE_PREFIX + query); } catch (e) { return null; }
             }
@@ -195,6 +198,7 @@
                 try { localStorage.setItem(CACHE_PREFIX + query, url); } catch (e) {}
             }
 
+            // --- Limpiar consulta para iTunes ---
             function cleanQuery(artist, title) {
                 let cleanTitle = title;
                 cleanTitle = cleanTitle.replace(/\s*[\(\[].*?[\)\]]/g, '');
@@ -208,6 +212,7 @@
                 return `${artist} ${cleanTitle}`.trim();
             }
 
+            // --- Buscar carátula en iTunes (con caché) ---
             async function fetchAlbumArt(artist, title) {
                 const query = cleanQuery(artist, title);
                 if (query === lastSearchedQuery) return;
@@ -240,6 +245,7 @@
                 }
             }
 
+            // --- Actualizar imagen con fundido ---
             function updateAlbumArt(src) {
                 if (albumArtEl.src === src && albumArtEl.classList.contains('loaded')) return;
                 const newImg = new Image();
@@ -254,6 +260,7 @@
                 };
             }
 
+            // --- Conexión SSE con Zeno ---
             if (typeof EventSource === 'undefined') {
                 titleEl.textContent = 'TURADIO';
                 artistEl.textContent = 'Música sin fronteras';
@@ -285,7 +292,9 @@
                 }
             };
 
-            eventSource.onerror = function() {};
+            eventSource.onerror = function() {
+                // Silencioso. EventSource reintenta automáticamente.
+            };
         })();
     </script>
 
