@@ -33,6 +33,24 @@
             gap: 12px;
         }
 
+        /* === NUEVO: LOGO DE TURADIO === */
+        .logo-container {
+            width: 180px;
+            max-width: 45%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 4px;
+            filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.5));
+        }
+
+        .logo-container img {
+            width: 100%;
+            height: auto;
+            object-fit: contain;
+            display: block;
+        }
+
         .cover-container {
             width: 68%;
             max-width: 320px;
@@ -107,6 +125,12 @@
 <body>
 
     <div class="wrapper">
+
+        <!-- === NUEVO: LOGO DE TURADIO === -->
+        <div class="logo-container">
+            <img src="logoturadio.png" alt="Logo TURADIO">
+        </div>
+
         <div class="cover-container">
             <img id="album-art" src="turadiocoveroriginaldos.jpg" alt="Cover">
         </div>
@@ -126,7 +150,6 @@
 
     <script>
         (function() {
-            // --- Configuración ---
             const MOUNT = 'kns3mkxb6ehvv';
             const ZENO_API_URL = 'https://api.zeno.fm/mounts/metadata/subscribe/' + MOUNT;
             const DEFAULT_ALBUM_ART = 'turadiocoveroriginaldos.jpg';
@@ -139,7 +162,6 @@
 
             let lastSearchedQuery = '';
 
-            // --- Reproducción automática con fallback de clic silencioso ---
             function tryPlay() {
                 const promise = playerEl.play();
                 if (promise !== undefined) {
@@ -150,7 +172,6 @@
             }
             window.addEventListener('load', tryPlay);
 
-            // --- Caché de carátulas con localStorage ---
             function getCachedAlbumArt(query) {
                 try { return localStorage.getItem(CACHE_PREFIX + query); } catch (e) { return null; }
             }
@@ -158,30 +179,24 @@
                 try { localStorage.setItem(CACHE_PREFIX + query, url); } catch (e) {}
             }
 
-            // --- Limpiar consulta para iTunes (mejora aciertos y velocidad) ---
             function cleanQuery(artist, title) {
                 let cleanTitle = title;
-                // Quitar paréntesis y corchetes con su contenido
                 cleanTitle = cleanTitle.replace(/\s*[\(\[].*?[\)\]]/g, '');
-                // Quitar palabras comunes que ensucian la búsqueda
                 const stopWords = ['feat\\.', 'ft\\.', 'featuring', 'remix', 'edit', 'version', 'radio'];
                 stopWords.forEach(word => {
                     const regex = new RegExp(`\\b${word}\\b`, 'gi');
                     cleanTitle = cleanTitle.replace(regex, '');
                 });
-                // Limpiar espacios y guiones sueltos
                 cleanTitle = cleanTitle.replace(/\s+/g, ' ').trim();
                 cleanTitle = cleanTitle.replace(/^[\s\-–—]+|[\s\-–—]+$/g, '');
                 return `${artist} ${cleanTitle}`.trim();
             }
 
-            // --- Buscar carátula en iTunes (con caché) ---
             async function fetchAlbumArt(artist, title) {
                 const query = cleanQuery(artist, title);
                 if (query === lastSearchedQuery) return;
                 lastSearchedQuery = query;
 
-                // 1. Caché primero
                 const cachedUrl = getCachedAlbumArt(query);
                 if (cachedUrl) {
                     console.log(`⚡ Caché: "${query}"`);
@@ -189,7 +204,6 @@
                     return;
                 }
 
-                // 2. Si no está, buscar en iTunes
                 console.log(`🔍 iTunes: "${query}"`);
                 try {
                     const url = `https://itunes.apple.com/search?term=${encodeURIComponent(query)}&entity=song&limit=1`;
@@ -210,9 +224,7 @@
                 }
             }
 
-            // --- Actualizar imagen con fundido ---
             function updateAlbumArt(src) {
-                // Si ya es la misma imagen, no hacemos nada
                 if (albumArtEl.src === src && albumArtEl.classList.contains('loaded')) return;
                 const newImg = new Image();
                 newImg.src = src;
@@ -226,7 +238,6 @@
                 };
             }
 
-            // --- Conexión SSE con Zeno ---
             if (typeof EventSource === 'undefined') {
                 titleEl.textContent = 'TURADIO';
                 artistEl.textContent = 'Música sin fronteras';
@@ -258,9 +269,7 @@
                 }
             };
 
-            eventSource.onerror = function() {
-                // Silencioso. EventSource reintenta automáticamente.
-            };
+            eventSource.onerror = function() {};
         })();
     </script>
 
