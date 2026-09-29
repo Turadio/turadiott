@@ -34,23 +34,26 @@
         }
 
         /* === LOGO DE TURADIO: GRANDE + ANIMACIÓN DE ZOOM === */
+               /* === LOGO DE TURADIO: altura fija + animación === */
         .logo-container {
-            width: 300px !important;
-            max-width: 75% !important;
+            height: 140px !important;
             display: flex;
             justify-content: center;
             align-items: center;
-            margin-bottom: 10px !important;
+            margin: 0 !important;
+            padding: 0 !important;
             filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.5));
             animation: logoBreath 4s ease-in-out infinite !important;
             transform-origin: center center;
         }
 
         .logo-container img {
-            width: 100% !important;
-            height: auto !important;
+            height: 100% !important;
+            width: auto !important;
             object-fit: contain;
             display: block;
+            margin: 0 !important;
+            padding: 0 !important;
         }
 
         @keyframes logoBreath {
