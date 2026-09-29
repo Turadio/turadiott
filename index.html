@@ -33,44 +33,33 @@
             gap: 12px;
         }
 
-        /* === NUEVO: LOGO DE TURADIO === */
+        /* === LOGO DE TURADIO: GRANDE + ANIMACIÓN DE ZOOM === */
         .logo-container {
-            width: 180px;
-            max-width: 45%;
+            width: 300px !important;
+            max-width: 75% !important;
             display: flex;
             justify-content: center;
             align-items: center;
-            margin-bottom: 4px;
+            margin-bottom: 10px !important;
             filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.5));
-        }
-
-                /* === LOGO DE TURADIO (más grande + animación de zoom sutil) === */
-        .logo-container {
-            width: 280px;                /* ← Más grande que antes (era 180px) */
-            max-width: 70%;              /* ← Más grande en pantallas pequeñas (era 45%) */
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            margin-bottom: 8px;
-            filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.5));
-            animation: logoBreath 5s ease-in-out infinite;
+            animation: logoBreath 4s ease-in-out infinite !important;
+            transform-origin: center center;
         }
 
         .logo-container img {
-            width: 100%;
-            height: auto;
+            width: 100% !important;
+            height: auto !important;
             object-fit: contain;
             display: block;
         }
 
-        /* Animación de acercamiento y alejamiento MUY sutil */
         @keyframes logoBreath {
             0%   { transform: scale(1); }
-            50%  { transform: scale(1.06); }
+            50%  { transform: scale(1.10); }
             100% { transform: scale(1); }
         }
-        }
 
+        /* === CARÁTULA === */
         .cover-container {
             width: 68%;
             max-width: 320px;
@@ -92,6 +81,7 @@
 
         .cover-container img.loaded { opacity: 1; }
 
+        /* === REPRODUCTOR DE AUDIO === */
         .audio-container {
             width: 90%;
             max-width: 320px;
@@ -109,6 +99,7 @@
             opacity: 0.95;
         }
 
+        /* === TÍTULO Y ARTISTA === */
         .info {
             text-align: center;
             width: 92%;
@@ -146,15 +137,17 @@
 
     <div class="wrapper">
 
-        <!-- === NUEVO: LOGO DE TURADIO === -->
+        <!-- === LOGO DE TURADIO === -->
         <div class="logo-container">
             <img src="logoturadio.png" alt="Logo TURADIO">
         </div>
 
+        <!-- === CARÁTULA === -->
         <div class="cover-container">
             <img id="album-art" src="turadiocoveroriginaldos.jpg" alt="Cover">
         </div>
 
+        <!-- === REPRODUCTOR === -->
         <div class="audio-container">
             <audio id="player" controls autoplay>
                 <source src="https://stream.zeno.fm/kns3mkxb6ehvv" type="audio/mpeg">
@@ -162,6 +155,7 @@
             </audio>
         </div>
 
+        <!-- === INFO === -->
         <div class="info">
             <div class="song-title" id="song-title">Cargando...</div>
             <div class="song-artist" id="song-artist"></div>
